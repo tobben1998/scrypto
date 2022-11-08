@@ -1,5 +1,9 @@
 //useful code
 
+//i forhold til shareholder token
+//https://github.com/radixdlt/scrypto-examples/blob/main/core/payment-splitter/src/lib.rs
+
+//veldig relevant se linje 422 for rounding errors i forhold til å deposite flere tokens
 //https://github.com/radixdlt/scrypto-examples/blob/main/core/payment-splitter/src/lib.rs
 
 use scrypto::prelude::*;
@@ -12,7 +16,7 @@ blueprint! {
 
     struct Fund {
         //vaults with all funds for the the Fund
-        vaults: HashMap<ResourceAddress, Vault>, //all vaults with the different token-rri
+        vaults: HashMap<ResourceAddress, Vault>,
         //resource defention for admin stuff
         fund_manager_badge: ResourceAddress,
         //Vault holding the admin badge, allowing the component to mint and burn new share tokens. 
@@ -34,16 +38,15 @@ blueprint! {
                 .initial_supply(1);
 
             
-            //brukes foreløpig ikke
-            //Create a minting authoity badge, that will be kept
-            //inside the component to be able to mint
+
+            //internal badge used for minting and burning share tokens
             let internal_admin_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "Internal admin badge")
                 .metadata("desciption", "Badge that has the auhority to mint and burn share tokens")
                 .initial_supply(1);
 
-            //share tokens for showing what ashare a user have of the fund
+            //share tokens for showing what share a user have of the fund
             let share_tokens: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_MAXIMUM)
                 .metadata("name", "share tokens")
@@ -62,7 +65,6 @@ blueprint! {
             let mut component = Self {
                 fund_manager_badge: fund_manager_badge.resource_address(),
                 internal_admin_badge: Vault::with_bucket(internal_admin_badge),
-                //xrd_vault: Vault::new(RADIX_TOKEN),
                 vaults: HashMap::new(),
                 total_share_tokens: dec!(1000),
                 share_tokens_vault: Vault::with_bucket(share_tokens) 
@@ -87,6 +89,7 @@ blueprint! {
             self.vaults.get_mut(&resource_address).unwrap().put(fund);
         }
 
+        //function for making stuff mor readable
         // pub fn get_vault(&mut self, resource_address: ResourceAddress){
         //      self.vaults.get_mut(&resource_address).unwrap();
         // }
@@ -94,18 +97,17 @@ blueprint! {
 
         //need transaction mainfest to test this
         //deposit inn all tokens that is in the pool in the same ratio as the pool.
-        pub fn deposit_token_to_fund(&mut self, mut tokens: Vec<Bucket>) -> (Bucket, Vec<Bucket>) {
 
-            //find min_ratio between buckets and vaults to find out the value you should take from each bucket,
-            //so there is enough to take, an the ratio in the pool remains the same. The rest should be given back
+        //example
+        //share tokens=1000
+        //tokens in fund 10 btc 20 eth
+        //buckets contain 1btc and 2.1eth. -> ratio=0.1for btc and 0.10 for eth. min ratio=0.10
+        //it will then exist 11btc 22eth in fund. 1100 of share tokens, and he will get 100 sharetokens. (min ratio*share tokens)
 
+        pub fn deposit_tokens_to_fund(&mut self, mut tokens: Vec<Bucket>) -> (Bucket, Vec<Bucket>) {
 
-            //example
-            //share tokens=1000
-            //tokens in fund 10 btc 20 eth
-            //buckets contain 1btc and 2.1eth. -> ratio=0.1for btc and 0.10 for eth. min ratio=0.10
-            //it will then exist 11btc 22eth in fund. 1100 of share tokens, and he will get 100 sharetokens. (min ratio*share tokens)
-            
+            //TODO
+            //use assert to check for stuff, for example that correct address etc. Not sure if this is needed. you can test.
 
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //!!!!!må sikkert lenge til sånn get_mut og unwrap her som self.vaults!!!!!!!!!!!
@@ -114,11 +116,14 @@ blueprint! {
 
             //en annen feil kan også vare at jeg tar mer fra buckets enn det er pga en rounding error når jeg deler? må dette fikses?
             
-            //sikker lage helper function for get amount?
-            //self.get_vault(tokens[0].resource_address()).amount();
+            //sikker smart å lage helper function for get vault?
+
+
+            //Denne måten istednefor? self.get_vault(tokens[0].resource_address()).amount();
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            //calculate min_ratio to find out how much you shoudl take from each bucket.
+            //calculate min_ratio to find out how much you should take from each bucket.
+            //so there is enough to take, an the ratio in the pool remains the same. The rest should be given back
             let mut ratio=tokens[0].amount()/self.vaults.get_mut(&tokens[0].resource_address()).unwrap().amount();
             let mut min_ratio=ratio;
             for token in &tokens{
@@ -146,12 +151,32 @@ blueprint! {
             (share_tokens, tokens)
         }
 
-        // pub fn witdraw_from_fund(&mut self) -> Bucket {
 
-        // }
+
+
+
+
+
+        pub fn witdraw_tokens_from_fund(&mut self, share_tokens: Bucket) -> Vec<Bucket> {//-> Bucket {
+            
+            //TODO
+            //check that the share token has the correct sharetoken resource address
+            
+            //take fund from vaults
+            let mut tokens = Vec::new();
+            let your_share = share_tokens.amount()/self.total_share_tokens;
+            for vault in self.vaults.values_mut(){
+                tokens.push(vault.take(your_share));
+            }
+
+            //burn sharetokens
+            self.total_share_tokens -= share_tokens.amount();
+            let resource_manager = borrow_resource_manager!(self.share_tokens_vault.resource_address());
+            self.internal_admin_badge.authorize(|| resource_manager.burn(share_tokens));
+
+            tokens
+
+        }
     }
 }
 
-
-//veldig relevant se linje 422 for rounding errors i forhold til å deposite flere tokens
-//https://github.com/radixdlt/scrypto-examples/blob/main/core/payment-splitter/src/lib.rs
