@@ -163,9 +163,11 @@ blueprint! {
             let fee=(self.deposit_fee_percentage/dec!(100))*share_tokens.amount();
             self.share_tokens_vault.put(share_tokens.take(fee));
 
+            // !!!!!!!!!!noe feil her. acc2 får ikke share tokens som han skal!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //return the share tokens, and the rest of the funds that was not depoited into the fund.
+            
+
             (share_tokens, tokens)
-            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1noe feil her. acc2 får ikke share tokens som han skal
         }
 
 
