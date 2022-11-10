@@ -11,5 +11,5 @@ TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("81") ResourceAddress("${xrd}") Bucket("xrd"
 CALL_METHOD ComponentAddress("${fund}") "deposit_tokens_to_fund" List<Bucket>(Bucket("xrd"), Bucket("eth"));
 
 #return resources from worktop back to acc
-CALL_METHOD ComponentAddress("${acc1}") "deposit_batch" Expression("ENTIRE_WORKTOP");
+CALL_METHOD ComponentAddress("${acc2}") "deposit_batch" Expression("ENTIRE_WORKTOP");
 
