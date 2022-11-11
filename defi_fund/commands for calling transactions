@@ -1,6 +1,9 @@
 # the following commands creates 4 accounts, and gives them some different resources.
 # It also call the instatiate function with some paratemerts
 
+#if you only make implemenation chnages, ie not chaning struct. then you can use this function to updtae you package
+resim publish . --package-address $pkg
+
 #copy and paste these to get started with a fund 
 resim reset
 
@@ -20,8 +23,6 @@ op4=$(resim new-account)
 export pk4=$(echo "$op4" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc4=$(echo "$op4" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
 
-
-
 resim set-default-account $acc1 $pk1
 
 export xrd=resource_sim1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzqu57yag
@@ -39,7 +40,6 @@ op8=$(resim new-token-fixed --name Dogecoin --symbol DOGE 1000000)
 export doge=$(echo "$op8" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
 
 
-
 resim transfer 1000 $btc $acc2
 resim transfer 1000 $btc $acc3
 resim transfer 1000 $btc $acc4
@@ -53,6 +53,8 @@ resim transfer 1000 $doge $acc2
 resim transfer 1000 $doge $acc3
 resim transfer 1000 $doge $acc4
 
+resim set-default-account $acc2 $pk2
+
 
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
@@ -62,7 +64,7 @@ export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 
 
 #add eth to fund for testing purposes this is just before you are able to trade, so you can test on deposit and witdraw.
-resim run transactions/add_eth_to_fund_testing_acc1.rtm
+resim run transactions/add_eth_to_fund_testing_acc2.rtm
 
 #use these for changing accounts
 resim set-default-account $acc1 $pk1
@@ -77,8 +79,8 @@ resim show $acc2
 resim show $acc3
 resim show $acc4
 
-#to deposit from acc2
-resim run transactions/deposit_xrd_and_eth_acc2.rtm
+#to deposit from acc3
+resim run transactions/deposit_xrd_and_eth_acc3.rtm
 
 
 

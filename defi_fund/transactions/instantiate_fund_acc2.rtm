@@ -1,12 +1,12 @@
 #set fee
-CALL_METHOD ComponentAddress("${acc1}") "lock_fee" Decimal("100");
+CALL_METHOD ComponentAddress("${acc2}") "lock_fee" Decimal("100");
 
 #take 100xrd from account to worktop
-CALL_METHOD ComponentAddress("${acc1}") "withdraw_by_amount" Decimal("100") ResourceAddress("${xrd}");
+CALL_METHOD ComponentAddress("${acc2}") "withdraw_by_amount" Decimal("100") ResourceAddress("${xrd}");
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("100") ResourceAddress("${xrd}") Bucket("xrd1");
 
 #call instatiate fund function
 CALL_FUNCTION PackageAddress("${pkg}") "Fund" "instantiate_fund" Bucket("xrd1") Decimal("100");
 
 #return resources from worktop back to acc
-CALL_METHOD ComponentAddress("${acc1}") "deposit_batch" Expression("ENTIRE_WORKTOP");
+CALL_METHOD ComponentAddress("${acc2}") "deposit_batch" Expression("ENTIRE_WORKTOP");

@@ -1,0 +1,16 @@
+#set fee
+CALL_METHOD ComponentAddress("${acc2}") "lock_fee" Decimal("100");
+
+#take 50eth from acc2 to worktop
+CALL_METHOD ComponentAddress("${acc2}") "withdraw_by_amount" Decimal("50") ResourceAddress("${eth}");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("50") ResourceAddress("${eth}") Bucket("eth");
+
+#put 50 eth into fund
+CALL_METHOD ComponentAddress("${fund}") "add_token_to_fund" Bucket("eth");
+
+#return resources from worktop back to acc
+CALL_METHOD ComponentAddress("${acc2}") "deposit_batch" Expression("ENTIRE_WORKTOP");
+
+
+
+
