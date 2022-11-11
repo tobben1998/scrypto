@@ -1,47 +1,38 @@
 # DeFi Fund
 
-This is a scrypto blueprint that let you create or join a fund. As a fund manager you will be able to trade among different cryptocurrecnies, and collect a fee from those who want to join your fund. If you do not want o create a fund, you can also join another fund someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. The are kept securly in a vault and can only get accesed to trade from whitlisted pools.
+This is a proof of conept scrypto blueprint that lets you create or join a fund. As a fund manager you will be able to trade cryptocurrecnies, and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also join a fund that someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. They are kept securly in a vault and can only be traded with whitelisted tokens by the fund manager. He has never accecs to withdraw your funds.
 
 ## Getting Started
 
 If you haven't installed essensitals for scrypto yet look here first: https://docs.radixdlt.com/main/scrypto/getting-started/install-scrypto.html. If you haven't cloned the github repo you need to clone the repo and then move into the defi_fund folder before you can follow the instructions below.
 
-Start by resetting the simulator.
+Start by resetting the simulator:
 
 ```sh
 resim reset
 ```
 
-Create some new accounts.
+Create some new accounts:
 
 ```sh
-OP1=$(resim new-account)
-export PRIV_KEY1=$(echo "$OP1" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
-export PUB_KEY1=$(echo "$OP1" | sed -nr "s/Public key: ([[:alnum:]_]+)/\1/p")
-export ACC_ADDRESS1=$(echo "$OP1" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-OP2=$(resim new-account)
-export PRIV_KEY2=$(echo "$OP2" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
-export PUB_KEY2=$(echo "$OP2" | sed -nr "s/Public key: ([[:alnum:]_]+)/\1/p")
-export ACC_ADDRESS2=$(echo "$OP2" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-OP3=$(resim new-account)
-export PRIV_KEY3=$(echo "$OP3" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
-export PUB_KEY3=$(echo "$OP3" | sed -nr "s/Public key: ([[:alnum:]_]+)/\1/p")
-export ACC_ADDRESS3=$(echo "$OP3" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-OP4=$(resim new-account)
-export PRIV_KEY4=$(echo "$OP4" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
-export PUB_KEY4=$(echo "$OP4" | sed -nr "s/Public key: ([[:alnum:]_]+)/\1/p")
-export ACC_ADDRESS4=$(echo "$OP4" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-OP5=$(resim new-account)
-export PRIV_KEY5=$(echo "$OP5" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
-export PUB_KEY5=$(echo "$OP5" | sed -nr "s/Public key: ([[:alnum:]_]+)/\1/p")
-export ACC_ADDRESS5=$(echo "$OP5" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-OP6=$(resim new-account)
-export PRIV_KEY6=$(echo "$OP6" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
-export PUB_KEY6=$(echo "$OP6" | sed -nr "s/Public key: ([[:alnum:]_]+)/\1/p")
-export ACC_ADDRESS6=$(echo "$OP6" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
+op1=$(resim new-account)
+export pk1=$(echo "$op1" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
+export acc1=$(echo "$op1" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
+
+op2=$(resim new-account)
+export pk2=$(echo "$op2" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
+export acc2=$(echo "$op2" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
+
+op3=$(resim new-account)
+export pk3=$(echo "$op3" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
+export acc3=$(echo "$op3" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
+
+op4=$(resim new-account)
+export pk4=$(echo "$op4" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
+export acc4=$(echo "$op4" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
 ```
 
-Create some tokens to test with and and send some tokens to the different accounts you created.
+Create some tokens to test with and and send some tokens to the different accounts you created:
 
 ```sh
 resim set-default-account $acc1 $pk1
@@ -75,7 +66,7 @@ resim transfer 1000 $doge $acc3
 resim transfer 1000 $doge $acc4
 ```
 
-publish the package and create a fund with account2.
+publish the package and create a fund with account2:
 
 ```sh
 resim set-default-account $acc2 $pk2
