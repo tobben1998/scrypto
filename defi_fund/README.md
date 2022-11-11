@@ -74,7 +74,7 @@ resim set-default-account $acc2 $pk2
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
 
-fund=$(resim run "./transactions/instantiate_fund.rtm")
+fund=$(resim run "./transactions/instantiate_fund_acc2.rtm")
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 ```
 
