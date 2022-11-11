@@ -1,2 +1,1 @@
-# scrypto
-My scrypto blueprints.
+# My scrypto blueprints
