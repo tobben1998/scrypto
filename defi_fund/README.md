@@ -78,7 +78,7 @@ fund=$(resim run "./transactions/instantiate_fund.rtm")
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 ```
 
-You have now succsefully created and fund, and have the enviroments variables you need for testing some examples. The fund manager is acc2.
+You have succsefully created a fund, and have the enviroments variables you need for testing some examples. The fund manager is acc2.
 
 ## Examples
 
