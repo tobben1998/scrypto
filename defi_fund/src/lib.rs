@@ -9,6 +9,9 @@
 //veldig relevant se linje 422 for rounding errors i forhold til å deposite flere tokens
 //https://github.com/radixdlt/scrypto-examples/blob/main/core/payment-splitter/src/lib.rs
 
+//docs fro creating transactions
+//https://docs.radixdlt.com/main/scrypto/transaction-manifest/specs.html
+
 use scrypto::prelude::*;
 
 blueprint! {
@@ -34,15 +37,13 @@ blueprint! {
 
     impl Fund {
 
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //!!let user put in intial supply here and amount of share tokens he want to be initial supply!!
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        pub fn instantiate_fund(token: Bucket, initial_supply_share_tokens: Decimal ) -> (ComponentAddress, Bucket) {
+        pub fn instantiate_fund(token: Bucket, initial_supply_share_tokens: Decimal ) -> (ComponentAddress, Bucket, Bucket) {
 
             //badge used for admin stuff
             let fund_manager_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
-                .metadata("name", "fund manager badge used for managing the fund, change fee, and collecting fee")
+                .metadata("name", "fund manager badge")
+                .metadata("desciption", "Badge used for managing the fund, change fee and collecting fees")
                 .initial_supply(1);
 
 
@@ -66,7 +67,7 @@ blueprint! {
             //access rules defined
             let access_rules = AccessRules::new()
                 .method("change_deposit_fee_percentage", rule!(require(fund_manager_badge.resource_address())))
-                .method("witdraw_collected_fee", rule!(require(fund_manager_badge.resource_address())))
+                .method("withdraw_collected_fee", rule!(require(fund_manager_badge.resource_address())))
                 .default(rule!(allow_all));
 
             let mut vaults = HashMap::new();
@@ -78,15 +79,15 @@ blueprint! {
                 fund_manager_badge: fund_manager_badge.resource_address(),
                 internal_admin_badge: Vault::with_bucket(internal_admin_badge),
                 vaults: vaults,
-                total_share_tokens: dec!(1000),
+                total_share_tokens: initial_supply_share_tokens,
                 share_token_resource_address: share_tokens.resource_address(),
-                share_tokens_vault: Vault::with_bucket(share_tokens),
+                share_tokens_vault: Vault::new(share_tokens.resource_address()),
                 deposit_fee_percentage: dec!(0) 
             }
             .instantiate();
             component.add_access_check(access_rules);
 
-            (component.globalize(),fund_manager_badge)
+            (component.globalize(),fund_manager_badge, share_tokens)
                 
         }
 
@@ -103,39 +104,18 @@ blueprint! {
             self.vaults.get_mut(&resource_address).unwrap().put(fund);
         }
 
-        //function for making stuff mor readable
-        // pub fn get_vault(&mut self, resource_address: ResourceAddress){
-        //      self.vaults.get_mut(&resource_address).unwrap();
-        // }
-
-
-        //need transaction mainfest to test this
-        //deposit inn all tokens that is in the pool in the same ratio as the pool.
-
         //example
         //share tokens=1000
         //tokens in fund 10 btc 20 eth
         //buckets contain 1btc and 2.1eth. -> ratio=0.1for btc and 0.10 for eth. min ratio=0.10
         //it will then exist 11btc 22eth in fund. 1100 of share tokens, and he will get 100 sharetokens. (min ratio*share tokens)
-
+        
+        //function for depositing tokens to the fund. You need to deposit each token that excist in the pool.
+        //tokens will be taken in the same ratio as the pool has, and the rest of the tokens will be returned back to you.
         pub fn deposit_tokens_to_fund(&mut self, mut tokens: Vec<Bucket>) -> (Bucket, Vec<Bucket>) {
 
-            //TODO
-            //use assert to check for stuff, for example that correct address etc. Not sure if this is needed. you can test.
-
-            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            //!!!!!må sikkert lenge til sånn get_mut og unwrap her som self.vaults!!!!!!!!!!!
-            //om ikke så hadde jeg denne istad.
-            //let mut ratio=tokens[0].amount()/self.vaults[&tokens[0].resource_address()].amount();
-
-            //en annen feil kan også vare at jeg tar mer fra buckets enn det er pga en rounding error når jeg deler? må dette fikses?
-            
-            //sikker smart å lage helper function for get vault eventuell get_amount_from_vault? feks:
-            //self.get_vault(tokens[0].resource_address()).amount();
-            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
             //calculate min_ratio to find out how much you should take from each bucket.
-            //so there is enough to take, an the ratio in the pool remains the same. The rest should be given back
+            //so there is enough to take, an the ratio in the pool remains the same. The rest will be given back
             let mut ratio=tokens[0].amount()/self.vaults.get_mut(&tokens[0].resource_address()).unwrap().amount();
             let mut min_ratio=ratio;
             for token in &tokens{
@@ -151,20 +131,24 @@ blueprint! {
                 self.add_token_to_fund(token.take(amount));
             }
 
+            info!("min_ratio (tokens_deposited/(tokens_in_vault): {:?}", min_ratio);
+            info!("total share tokens before: {:?}", self.total_share_tokens);
+
             //mint new sharetokens
             let new_share_tokens=min_ratio*self.total_share_tokens;
-            let resource_manager = borrow_resource_manager!(self.share_tokens_vault.resource_address());
+            self.total_share_tokens += new_share_tokens;
+            let resource_manager = borrow_resource_manager!(self.share_token_resource_address);
             let mut share_tokens = self
                 .internal_admin_badge
                 .authorize(|| resource_manager.mint(new_share_tokens));
-            self.total_share_tokens += new_share_tokens;
 
-            // deposit fee to the fund manager.
+            //deposit fee to the fund manager.
             let fee=(self.deposit_fee_percentage/dec!(100))*share_tokens.amount();
             self.share_tokens_vault.put(share_tokens.take(fee));
-
-            // !!!!!!!!!!noe feil her. acc2 får ikke share tokens som han skal!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            //return the share tokens, and the rest of the funds that was not depoited into the fund.
+            
+            info!("returned share tokens: {:?}", share_tokens.amount());
+            info!("share tokens fee: {:?}", fee);
+            info!("total share tokens after: {:?}", self.total_share_tokens);
             
 
             (share_tokens, tokens)
@@ -173,29 +157,31 @@ blueprint! {
 
 
 
+        //function that witdraw tokens from the fund relative to how much sharetokens you put into the function.
+        pub fn witdraw_tokens_from_fund(&mut self, share_tokens: Bucket) -> Vec<Bucket> {
 
-
-
-        pub fn witdraw_tokens_from_fund(&mut self, share_tokens: Bucket) -> Vec<Bucket> {//-> Bucket {
             assert!(share_tokens.resource_address()==self.share_token_resource_address,"Wrong tokens sent. You need to send share tokens.");
             
             //take fund from vaults and put into a Vec<Bucket>
             let mut tokens = Vec::new();
             let your_share = share_tokens.amount()/self.total_share_tokens;
             for vault in self.vaults.values_mut(){
-                tokens.push(vault.take(your_share));
+                info!("witdrew {:?} {:?}", your_share*vault.amount(), vault.resource_address());
+                tokens.push(vault.take(your_share*vault.amount()));
             }
 
             //burn sharetokens
             self.total_share_tokens -= share_tokens.amount();
             let resource_manager = borrow_resource_manager!(self.share_tokens_vault.resource_address());
             self.internal_admin_badge.authorize(|| resource_manager.burn(share_tokens));
+            
 
             tokens
         }
 
         //function that lets the fund manager withdraw a the share tokens he have got from the collected fee from the vault.
-        pub fn witdraw_collected_fee(&mut self) -> Bucket{
+        pub fn withdraw_collected_fee(&mut self) -> Bucket{
+            info!("witdrew {:?} sharetokens from vault.", self.share_tokens_vault.amount());
             self.share_tokens_vault.take_all()
         }
 
@@ -203,12 +189,13 @@ blueprint! {
         pub fn change_deposit_fee_percentage(&mut self, new_fee: Decimal){
             assert!(new_fee >= dec!(0) && new_fee <= dec!(5),"Fee need to be in range of 0% to 5%.");
             self.deposit_fee_percentage=new_fee;
+            info!("Deposit fee updated to: {:?}%", self.deposit_fee_percentage);
+
         }
 
 
-        //make .rtm files for testing the functions/methods you have made. 
-        //https://docs.radixdlt.com/main/scrypto/transaction-manifest/specs.html
 
+        //TODO
         //make a method that let fund manager trade assets on ociswap etc. with the funds in the fund.
 
 
