@@ -84,18 +84,18 @@ You have succsefully created a fund, and have the enviroments variables you need
 
 ## Commands used for testing
 
-# add eth to fund for testing purposes this is just before you are able to trade, so you can test on deposit and witdraw.
+### add eth to fund for testing purposes this is just before you are able to trade, so you can test on deposit and witdraw.
 
 resim run transactions/add_eth_to_fund_testing_acc2.rtm
 
-# use these for changing accounts
+### use these for changing accounts
 
 resim set-default-account $acc1 $pk1
 resim set-default-account $acc2 $pk2
 resim set-default-account $acc3 $pk3
 resim set-default-account $acc4 $pk4
 
-# these to show stuff
+### these to show stuff
 
 resim show $fund
 resim show $share_token
@@ -104,7 +104,7 @@ resim show $acc2
 resim show $acc3
 resim show $acc4
 
-# Different transactions used to test the fund
+### Different transactions used to test the fund
 
 resim run transactions/change_fee_acc2.rtm
 resim run transactions/withdraw_collected_fee_acc2.rtm
