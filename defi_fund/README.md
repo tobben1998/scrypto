@@ -75,11 +75,38 @@ pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
 
 fund=$(resim run "./transactions/instantiate_fund_acc2.rtm")
+export fund_manager_badge=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 ```
 
 You have succsefully created a fund, and have the enviroments variables you need for testing some examples. The fund manager is acc2.
 
-## Examples
+## Commands used for testing
 
-Example
+# add eth to fund for testing purposes this is just before you are able to trade, so you can test on deposit and witdraw.
+
+resim run transactions/add_eth_to_fund_testing_acc2.rtm
+
+# use these for changing accounts
+
+resim set-default-account $acc1 $pk1
+resim set-default-account $acc2 $pk2
+resim set-default-account $acc3 $pk3
+resim set-default-account $acc4 $pk4
+
+# these to show stuff
+
+resim show $fund
+resim show $share_token
+resim show $acc1
+resim show $acc2
+resim show $acc3
+resim show $acc4
+
+# Different transactions used to test the fund
+
+resim run transactions/change_fee_acc2.rtm
+resim run transactions/withdraw_collected_fee_acc2.rtm
+resim run transactions/deposit_xrd_and_eth_acc3.rtm
+resim run transactions/withdraw_from_fund_acc3.rtm
