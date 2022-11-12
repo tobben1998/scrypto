@@ -1,0 +1,15 @@
+#create proof of admin badge
+CALL_METHOD ComponentAddress("${acc2}") "create_proof" ResourceAddress("${fund_manager_badge}");
+
+#set fee
+CALL_METHOD ComponentAddress("${acc2}") "lock_fee" Decimal("100");
+
+#put 50 eth into fund
+CALL_METHOD ComponentAddress("${fund}") "withdraw_collected_fee";
+
+#return resources from worktop back to acc
+CALL_METHOD ComponentAddress("${acc2}") "deposit_batch" Expression("ENTIRE_WORKTOP");
+
+
+
+
