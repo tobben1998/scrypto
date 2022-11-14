@@ -1,6 +1,9 @@
 #vscode
 .vscode
 
+#ignore cit
+.vscode
+
 # macOS folder attributes
 .DS_Store
 
