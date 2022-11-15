@@ -34,14 +34,12 @@ blueprint! {
         internal_admin_badge: Vault,
         //keep track of total coins
         total_share_tokens: Decimal,
-        //resource address fro the share token
-        share_token_resource_address: ResourceAddress,
         //vault with share tokens to the creater of the Fund. 
         share_tokens_vault: Vault,
         //defined deposit fee,
         deposit_fee_percentage: Decimal,
-        // Radiswap whitelisted pools to trade with.
-        radiswap_component_addresses: Vec<ComponentAddress>
+        // whitelisted pools to trade with.
+        whitelisted_pool_addresses: Vec<ComponentAddress>
 
     }
 
@@ -73,11 +71,11 @@ blueprint! {
                 .burnable(rule!(require(internal_admin_badge.resource_address())),LOCKED)
                 .initial_supply(initial_supply_share_tokens);
 
-                
             //access rules defined
             let access_rules = AccessRules::new()
                 .method("change_deposit_fee_percentage", rule!(require(fund_manager_badge.resource_address())))
                 .method("withdraw_collected_fee", rule!(require(fund_manager_badge.resource_address())))
+                .method("trade_radiswap", rule!(require(fund_manager_badge.resource_address())))
                 .default(rule!(allow_all));
 
             let mut vaults = HashMap::new();
@@ -90,10 +88,9 @@ blueprint! {
                 internal_admin_badge: Vault::with_bucket(internal_admin_badge),
                 vaults: vaults,
                 total_share_tokens: initial_supply_share_tokens,
-                share_token_resource_address: share_tokens.resource_address(),
                 share_tokens_vault: Vault::new(share_tokens.resource_address()),
                 deposit_fee_percentage: dec!(0),
-                radiswap_component_addresses: Vec::new()
+                whitelisted_pool_addresses: Vec::new()
             }
             .instantiate();
             component.add_access_check(access_rules);
@@ -115,11 +112,6 @@ blueprint! {
             self.vaults.get_mut(&resource_address).unwrap().put(fund);
         }
 
-        //example
-        //share tokens=1000
-        //tokens in fund 10 btc 20 eth
-        //buckets contain 1btc and 2.1eth. -> ratio=0.1for btc and 0.10 for eth. min ratio=0.10
-        //it will then exist 11btc 22eth in fund. 1100 of share tokens, and he will get 100 sharetokens. (min ratio*share tokens)
         
         //function for depositing tokens to the fund. You need to deposit each token that excist in the pool.
         //tokens will be taken in the same ratio as the pool has, and the rest of the tokens will be returned back to you.
@@ -148,7 +140,7 @@ blueprint! {
             //mint new sharetokens
             let new_share_tokens=min_ratio*self.total_share_tokens;
             self.total_share_tokens += new_share_tokens;
-            let resource_manager = borrow_resource_manager!(self.share_token_resource_address);
+            let resource_manager = borrow_resource_manager!(self.share_tokens_vault.resource_address());
             let mut share_tokens = self
                 .internal_admin_badge
                 .authorize(|| resource_manager.mint(new_share_tokens));
@@ -171,7 +163,7 @@ blueprint! {
         //function that witdraw tokens from the fund relative to how much sharetokens you put into the function.
         pub fn witdraw_tokens_from_fund(&mut self, share_tokens: Bucket) -> Vec<Bucket> {
 
-            assert!(share_tokens.resource_address()==self.share_token_resource_address,"Wrong tokens sent. You need to send share tokens.");
+            assert!(share_tokens.resource_address()==self.share_tokens_vault.resource_address(),"Wrong tokens sent. You need to send share tokens.");
             
             //take fund from vaults and put into a Vec<Bucket>
             let mut tokens = Vec::new();
@@ -204,12 +196,13 @@ blueprint! {
 
         }
 
-        //This function lets the fund manager trade with all the funds assest on withlisted pools.
-        //token_address is the asset you want to trade from if you want to trade from xrd to eth you put it the xrd address.
-        pub fn trade(&mut self, token_address: ResourceAddress, amount: Decimal, pool_address: ComponentAddress){
+        //This function lets the fund manager trade with all the funds assest on whitelisted pools.
+        //token_address is the asset you want to trade from.
+        pub fn trade_radiswap(&mut self, token_address: ResourceAddress, amount: Decimal, pool_address: ComponentAddress){
             //check that the pool_address is whitelisted
-            assert!(self.radiswap_component_addresses.iter().any(|&i| i==pool_address));
+            assert!(self.whitelisted_pool_addresses.iter().any(|&i| i==pool_address));
 
+            //do a trade using radiswap.
             let radiswap: RadiswapComponent = pool_address.into();
             let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().take(amount);
             let bucket_after_swap=radiswap.swap(bucket_before_swap);
@@ -218,40 +211,15 @@ blueprint! {
 
         }
 
-        //in the real version we do not need this function. This is just a function to create tradingpools locally so that we have some pools to test with.
-        //you would instead need a function that updates the radiswap component adresse, to only contain whitelisted pools to trade in. Fund manager should not be able to update this whitlisted pools function. only the owner of defiFunds.
-        pub fn radiswap_new_pool(
-            &mut self,
-            a_tokens: Bucket,
-            b_tokens: Bucket,
-            lp_initial_supply: Decimal,
-            lp_symbol: String,
-            lp_name: String,
-            lp_url: String,
-            fee: Decimal,
-        ) -> Bucket
-        {
-            let (radiswap, lp_tokens) = RadiswapComponent::instantiate_pool(
-                a_tokens,
-                b_tokens,
-                lp_initial_supply,
-                lp_symbol,
-                lp_name,
-                lp_url,
-                fee
-            )
-            .into();
-
-            
-            self.radiswap_component_addresses.push(radiswap);
-
-            lp_tokens
+        //whitelisted pool addresses //only owner of defiFunds should be able to change this.
+        pub fn new_whitelisted_pool(&mut self, pool_address: ComponentAddress){
+            self.whitelisted_pool_addresses.push(pool_address);
         }
 
 
         //libs
 
-        //funds. keepp track of all funds
+        //funds. keep track of all funds
         //fund   (this will make use of radiswap to trade)
         //a swapping . forexample radiswap. 
         //
