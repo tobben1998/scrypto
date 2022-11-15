@@ -10,66 +10,94 @@ resim reset
 op1=$(resim new-account)
 export pk1=$(echo "$op1" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc1=$(echo "$op1" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-
 op2=$(resim new-account)
 export pk2=$(echo "$op2" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc2=$(echo "$op2" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-
 op3=$(resim new-account)
 export pk3=$(echo "$op3" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc3=$(echo "$op3" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-
 op4=$(resim new-account)
 export pk4=$(echo "$op4" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc4=$(echo "$op4" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
 
+
 resim set-default-account $acc1 $pk1
 
 export xrd=resource_sim1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzqu57yag
-
-op5=$(resim new-token-fixed --name Bitcoin --symbol BTC 1000000)
+op5=$(resim new-token-fixed --name Bitcoin --symbol BTC 10000000)
 export btc=$(echo "$op5" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
-
-op6=$(resim new-token-fixed --name Ethereum --symbol ETH 1000000)
+op6=$(resim new-token-fixed --name Ethereum --symbol ETH 10000000)
 export eth=$(echo "$op6" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
-
-op7=$(resim new-token-fixed --name Tether --symbol USDT 1000000)
+op7=$(resim new-token-fixed --name Tether --symbol USDT 10000000)
 export usdt=$(echo "$op7" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
-
-op8=$(resim new-token-fixed --name Dogecoin --symbol DOGE 1000000)
+op8=$(resim new-token-fixed --name Dogecoin --symbol DOGE 10000000)
 export doge=$(echo "$op8" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
 
-
-resim transfer 1000 $btc $acc2
-resim transfer 1000 $btc $acc3
-resim transfer 1000 $btc $acc4
-resim transfer 1000 $eth $acc2
-resim transfer 1000 $eth $acc3
-resim transfer 1000 $eth $acc4
-resim transfer 1000 $usdt $acc2
-resim transfer 1000 $usdt $acc3
-resim transfer 1000 $usdt $acc4
-resim transfer 1000 $doge $acc2
-resim transfer 1000 $doge $acc3
-resim transfer 1000 $doge $acc4
-
-resim set-default-account $acc2 $pk2
-
+resim transfer 100000 $btc $acc2
+resim transfer 100000 $btc $acc3
+resim transfer 100000 $btc $acc4
+resim transfer 100000 $eth $acc2
+resim transfer 100000 $eth $acc3
+resim transfer 100000 $eth $acc4
+resim transfer 100000 $usdt $acc2
+resim transfer 100000 $usdt $acc3
+resim transfer 100000 $usdt $acc4
+resim transfer 100000 $doge $acc2
+resim transfer 100000 $doge $acc3
+resim transfer 100000 $doge $acc4
 
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
+
+pools=$(resim run "./transactions/instantiate_radiswap_pools_acc1.rtm")
+export pool_btc_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+export pool_eth_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '2q;d')
+export pool_doge_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
+
+
+resim set-default-account $acc2 $pk2
 
 fund=$(resim run "./transactions/instantiate_fund_acc2.rtm")
 export fund_manager_badge=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
 export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 
+resim call-method $fund new_whitelisted_pool $pool_btc_usdt
+resim call-method $fund new_whitelisted_pool $pool_eth_usdt
+resim call-method $fund new_whitelisted_pool $pool_doge_usdt
 
 
-#add eth to fund for testing purposes this is just before you are able to trade, so you can test on deposit and witdraw.
-resim run transactions/add_eth_to_fund_testing_acc2.rtm
+
+##Transactioncalls for the fundmanager(acc2)
+
+#method: trade_radiswap
+#$usdt=the token you want to trade from
+#50=the amount you want to trade
+#$pool_doge_usdt
+resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
+
+#method: change_deposit_fee_percentage
+#2=the deposit percentage fee you want tpo change to
+resim call-method $fund change_deposit_fee_percentage 2 --proofs 1,$fund_manager_badge
+
+#method: withdraw_collected_fee
+resim call-method $fund withdraw_collected_fee --proofs 1,$fund_manager_badge
 
 
+##Transactioncall for normal users
+
+#method: deposit_tokens_to_fund
+#this method does not work with normal resim calls, beacuse of vec<Bucket>, so you need to chnage the .rtm file if you wan to chnage paramters.
+resim run transactions/deposit_usdt_and_doge_acc3.rtm
+
+#method: witdraw_tokens_from_fund
+#50=amount of sharetokens you want to exchange for the tokens in the fund.
+resim call-method $fund witdraw_tokens_from_fund 50,$share_token
+
+
+
+
+##useful commands 
 #use these for changing accounts
 resim set-default-account $acc1 $pk1
 resim set-default-account $acc2 $pk2
@@ -79,17 +107,21 @@ resim set-default-account $acc4 $pk4
 
 #these to show stuff
 resim show $fund
-resim show $share_token
 resim show $acc1
 resim show $acc2
 resim show $acc3
 resim show $acc4
 
-#different transactions used to test the fund
-resim run transactions/change_fee_acc2.rtm
-resim run transactions/withdraw_collected_fee_acc2.rtm
-resim run transactions/deposit_xrd_and_eth_acc3.rtm
-resim run transactions/withdraw_from_fund_acc3.rtm
+
+
+
+#An example on how deposit works
+#share tokens=1000
+#tokens in fund 10 btc 20 eth
+#buckets contain 1btc and 2.1eth. -> ratio=0.1for btc and 0.10 for eth. min ratio=0.10
+#it will then exist 11btc 22eth in fund. 1100 of share tokens, and he will get 100 sharetokens. (min ratio*share tokens)
+
+
 
 
 
