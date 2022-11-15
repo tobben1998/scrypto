@@ -1,0 +1,26 @@
+#set fee
+CALL_METHOD ComponentAddress("${acc1}") "lock_fee" Decimal("100");
+
+#create btc_usdt_pool
+CALL_METHOD ComponentAddress("${acc1}") "withdraw_by_amount" Decimal("10") ResourceAddress("${btc}");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("10") ResourceAddress("${btc}") Bucket("btc");
+CALL_METHOD ComponentAddress("${acc1}") "withdraw_by_amount" Decimal("200000") ResourceAddress("${usdt}");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("200000") ResourceAddress("${usdt}") Bucket("usdt1");
+CALL_FUNCTION PackageAddress("${pkg}") "Radiswap" "instantiate_pool" Bucket("btc") Bucket("usdt1") Decimal("1000") "lp_btc_usdt" "lp_btc_usdt" "url" Decimal("0.0001");
+
+#create eth_usdt_pool
+CALL_METHOD ComponentAddress("${acc1}") "withdraw_by_amount" Decimal("100") ResourceAddress("${eth}");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("100") ResourceAddress("${eth}") Bucket("eth");
+CALL_METHOD ComponentAddress("${acc1}") "withdraw_by_amount" Decimal("100000") ResourceAddress("${usdt}");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("100000") ResourceAddress("${usdt}") Bucket("usdt3");
+CALL_FUNCTION PackageAddress("${pkg}") "Radiswap" "instantiate_pool" Bucket("eth") Bucket("usdt3") Decimal("1000") "lp_eth_usdt" "lp_eth_usdt" "url" Decimal("0.0001");
+
+#create doge_usdt_pool
+CALL_METHOD ComponentAddress("${acc1}") "withdraw_by_amount" Decimal("500000") ResourceAddress("${doge}");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("500000") ResourceAddress("${doge}") Bucket("doge");
+CALL_METHOD ComponentAddress("${acc1}") "withdraw_by_amount" Decimal("50000") ResourceAddress("${usdt}");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("50000") ResourceAddress("${usdt}") Bucket("usdt2");
+CALL_FUNCTION PackageAddress("${pkg}") "Radiswap" "instantiate_pool" Bucket("doge") Bucket("usdt2") Decimal("1000") "lp_doge_usdt" "lp_doge_usdt" "url" Decimal("0.0001");
+
+#return resources from worktop back to acc
+CALL_METHOD ComponentAddress("${acc1}") "deposit_batch" Expression("ENTIRE_WORKTOP");
