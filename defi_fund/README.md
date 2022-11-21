@@ -212,7 +212,7 @@ resim set-default-account $acc1 $pk1
 resim set-default-account $acc2 $pk2
 resim set-default-account $acc3 $pk3
 resim set-default-account $acc4 $pk4
-```sh
+```
 
 
 show what the accounts contain.
