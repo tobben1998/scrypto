@@ -1,10 +1,10 @@
 # DeFi Fund
 
-This is a proof of conept scrypto blueprint that lets you create or join a fund. As a fund manager you will be able to trade cryptocurrecnies, and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also join a fund that someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. They are kept securly in a vault and can only be traded with whitelisted tokens by the fund manager. He has never accecs to withdraw your funds.
+This is a proof-of-concept crypto blueprint that lets you create or join a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also join a fund that someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fund manager. He has never access to withdraw your funds.
 
 ## Getting Started
 
-If you haven't installed essensitals for scrypto yet look here first: https://docs.radixdlt.com/main/scrypto/getting-started/install-scrypto.html. If you haven't cloned the github repo you need to clone the repo and then move into the defi_fund folder before you can follow the instructions below.
+If you haven't installed essentials for crypto yet, look here first: https://docs.radixdlt.com/main/scrypto/getting-started/install-scrypto.html. If you haven't cloned the GitHub repo, you need to clone the repo and then move it into the defi_fund folder before you can follow the instructions below.
 
 Start by resetting the simulator:
 
@@ -29,7 +29,7 @@ export pk4=$(echo "$op4" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc4=$(echo "$op4" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
 ```
 
-Create some tokens to test with and and send some tokens to the different accounts you created:
+Create some tokens to test with and send some tokens to the different accounts you created:
 
 ```sh
 resim set-default-account $acc1 $pk1
@@ -58,14 +58,14 @@ resim transfer 100000 $doge $acc3
 resim transfer 100000 $doge $acc4
 ```
 
-publish the package:
+Publish the package:
 
 ```sh
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
 ```
 
-Created som pools using the radiswap component, so you can test trading.
+Created some pools using the radiswap component, so you can test trading.
 
 ```sh
 pools=$(resim run "./transactions/instantiate_radiswap_pools_acc1.rtm")
@@ -74,7 +74,7 @@ export pool_eth_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\
 export pool_doge_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 ```
 
-Create a defifund component. The main purpose of the defi component is to organize all the different funds created, and have controll of what pools that can be used for trading. It will also collect fees.
+Create a defifund component. The main purpose of the defi component is to organize all the different funds created and have control of what pools can be used for trading. It will also collect fees.
 
 ```sh
 defifunds=$(resim run "./transactions/instantiate_defifunds_acc1.rtm")
@@ -82,7 +82,7 @@ export defifunds_admin_badge=$(echo "$defifunds" | sed -nr "s/.*Resource: ([[:al
 export defifunds=$(echo "$defifunds" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 ```
 
-Add some tradingpools to the whitelist and set a fee for all deposits that goes to admin of defifunds.
+Add some trading pools to the whitelist and set a fee for all deposits that go to admin of defifunds.
 
 ```sh
 resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
@@ -92,7 +92,7 @@ resim call-method $defifunds new_pool_to_whitelist_all $pool_doge_usdt --proofs 
 resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
 ```
 
-Create a new fund using account 2, and set a deposit fee that goes to the fundmanager
+Create a new fund using account 2, and set a deposit fee that goes to the fund manager
 
 ```sh
 resim set-default-account $acc2 $pk2
@@ -106,42 +106,42 @@ resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manag
 
 ```
 
-You have not created the esstial components and, and are ready to go through a simple  example so show how it works.
+You have now created the essential components and are ready to go through a simple example to show how it works.
 
 
 
 ## Simple Example
 
-You have already created a fund with 100usdt on acc2. Swap 20 of them to dogecoin.
+You have already created a fund with 100usdt on acc2. Swap 20 of them for Dogecoin.
 
 ```sh
 resim set-default-account $acc2 $pk2
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
 ```
 
-you will now have 80 usdt and 199.9 doge. you can verify by doing.
+You will now have 80 usdt and 199.9 doge. You can verify by doing:
 
 ```sh
 resim show $fund
 ```
 
-switch to acc3 and deposit to the fund in ish the same ratio as the fund. for example 40usdt and 100doge
-If your account does not hold the tokens needed you ca use the radiswap component to get the correct tokens.
+Switch to acc3 and deposit to the fund in ish the same ratio as the fund. for example 40usdt and 100doge
+If your account does not hold the tokens needed, you can use the radiswap component to get the correct tokens.
 
 ```sh
 resim set-default-account $acc3 $pk3
 resim run transactions/deposit_usdt_and_doge_acc3.rtm
 ```
 
-you hva noe deposited to the fund and recived 49 share tokens. One share tokens has bee taken as a fee. you can verify by doing.
+You have not deposited to the fund and received 49 share tokens. One share token has been taken as a fee. You can verify by doing:
 
 ```sh
 resim show $acc3
 resim show $fund
 ```
 
-The fund manager can now do trades with all the funds, but he have not acces to witdraw them.
-Lets do some trades with the fund manger, and chekd the fund again
+The fund manager can now do trades with all the funds, but he has no access to withdraw them.
+Let's do some trades with the fund manager and check the fund again
 
 ```sh
 resim set-default-account $acc2 $pk2
@@ -151,8 +151,8 @@ resim call-method $fund trade_radiswap $doge 100 $pool_doge_usdt --proofs 1,$fun
 resim show $fund
 ```
 
-acc3 hold 49 share tokens, and there exist in total 150 share tokens. When he call the witdraw function
-he will get almost 1/3 of all the tokens in the pool. Test witdrawing the funds. and check the fund and the wallet
+acc3 holds 49 share tokens, and there exists in total 150 share tokens. When he calls the withdraw function,
+he will get almost 1/3 of all the tokens in the pool. Test withdrawing the funds, and check the fund and the wallet.
 
 ```sh
 resim set-default-account $acc3 $pk3
@@ -161,7 +161,7 @@ resim show $fund
 resim show $acc3
 ```
 
-fundmanager and defifund_admin can withtdraw the fee collected whenever they want. Try witdrawing them
+Fund managers and defifund_admin can withdraw the fee collected whenever they want. Try withdrawing them
 
 ```sh
 resim set-default-account $acc1 $pk1
@@ -173,14 +173,12 @@ resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_man
 resim show $acc2
 ```
 
-You have now hopefully a simple understading of how defifunds work. Try exploring with creating multiple funds forexample.
-To get a better understaidng of how the components works you should check you the src files. Down below is an overview over functions
-you can call to use the fund as you want. 
+You now have a simple understanding of how defifunds work. You can for example explore by creating multiple funds. To get a better understanding of how the components work, you should check the src files. Down below is an overview of functions you can call to use the fund as you want. 
 
 
-## Examples of methodcalls. You can change the paramters yourselves. 
+## Examples of method calls 
 
-Methodcalls for the defifunds_admin
+Method calls for the defifunds_admin
 ```sh
 resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
@@ -188,7 +186,7 @@ resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defi
 ```
 
 
-Methodcalls for the fundmanager
+Method calls for the fund manager
 ```sh
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
 resim call-method $fund change_deposit_fee_fund_manager 2 --proofs 1,$fund_manager_badge
@@ -196,7 +194,7 @@ resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_man
 ```
 
 
-Methodcalls for everyone
+Method calls for everyone
 ```sh
 resim call-method $defifunds new_fund 1000,$usdt 1000
 resim call-method $defifunds get_fund_addresses
@@ -215,7 +213,7 @@ resim set-default-account $acc4 $pk4
 ```
 
 
-show what the accounts contain.
+Show what the accounts contain.
 ```sh
 resim show $defifunds
 resim show $fund
@@ -224,6 +222,3 @@ resim show $acc2
 resim show $acc3
 resim show $acc4
 ```
-
-
-
