@@ -5,8 +5,9 @@ CALL_METHOD ComponentAddress("${acc2}") "lock_fee" Decimal("100");
 CALL_METHOD ComponentAddress("${acc2}") "withdraw_by_amount" Decimal("100") ResourceAddress("${usdt}");
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("100") ResourceAddress("${usdt}") Bucket("usdt");
 
-#call instatiate fund function
-CALL_FUNCTION PackageAddress("${pkg}") "Fund" "instantiate_fund" Bucket("usdt") Decimal("100");
+#call instatiate fund function                                                                 //denne skal være defifund admin
+#CALL_FUNCTION PackageAddress("${pkg}") "Fund" "instantiate_fund" Bucket("usdt") Decimal("100") ResourceAddress("${defifunds_admin_badge}") Decimal("1") List<ComponentAddress>();
+CALL_METHOD ComponentAddress("${defifunds}") "new_fund" Bucket("usdt") Decimal("100");
 
 #return resources from worktop back to acc
 CALL_METHOD ComponentAddress("${acc2}") "deposit_batch" Expression("ENTIRE_WORKTOP");

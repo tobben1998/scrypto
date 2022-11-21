@@ -54,47 +54,99 @@ export pool_btc_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\
 export pool_eth_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '2q;d')
 export pool_doge_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 
+defifunds=$(resim run "./transactions/instantiate_defifunds_acc1.rtm")
+export defifunds_admin_badge=$(echo "$defifunds" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
+export defifunds=$(echo "$defifunds" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
+
+resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist_all $pool_eth_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist_all $pool_doge_usdt --proofs 1,$defifunds_admin_badge
+
+resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
 
 resim set-default-account $acc2 $pk2
 
-fund=$(resim run "./transactions/instantiate_fund_acc2.rtm")
+fund=$(resim run "./transactions/new_fund_acc2.rtm")
 export fund_manager_badge=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
 export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 
-resim call-method $fund new_whitelisted_pool $pool_btc_usdt
-resim call-method $fund new_whitelisted_pool $pool_eth_usdt
-resim call-method $fund new_whitelisted_pool $pool_doge_usdt
+resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manager_badge
 
 
+#Simple example
+You have already created a fund with 100usdt. on acc2. Swap 20 of them to dogecoin.
 
-##Transactioncalls for the fundmanager(acc2)
-
-#method: trade_radiswap
-#$usdt=the token you want to trade from
-#50=the amount you want to trade
-#$pool_doge_usdt
+resim set-default-account $acc2 $pk2
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
 
-#method: change_deposit_fee_percentage
-#2=the deposit percentage fee you want tpo change to
-resim call-method $fund change_deposit_fee_percentage 2 --proofs 1,$fund_manager_badge
+you will now have 80 usdt and 199.9 doge. you can verify by doing.
 
-#method: withdraw_collected_fee
-resim call-method $fund withdraw_collected_fee --proofs 1,$fund_manager_badge
+resim show $fund
 
+switch to acc3 and deposit to the fund in ish the same ratio as the fund. for example 40usdt and 100doge
+If your account does not hold the tokens needed you ca use the radiswap component to get the correct tokens.
 
-##Transactioncall for normal users
-
-#method: deposit_tokens_to_fund
-#this method does not work with normal resim calls, beacuse of vec<Bucket>, so you need to chnage the .rtm file if you wan to chnage paramters.
+resim set-default-account $acc3 $pk3
 resim run transactions/deposit_usdt_and_doge_acc3.rtm
 
-#method: witdraw_tokens_from_fund
-#50=amount of sharetokens you want to exchange for the tokens in the fund.
-resim call-method $fund witdraw_tokens_from_fund 50,$share_token
+you hva noe deposited to the fund and recived 49 share tokens. One share tokens has bee taken as a fee. you can verify by doing.
 
+resim show $acc3
+resim show $fund
 
+The fund manager can now do trades with all the funds, but he have not acces to witdraw them.
+Lets do some trades with the fund manger, and chekd the fund again
+
+resim set-default-account $acc2 $pk2
+resim call-method $fund trade_radiswap $usdt 40 $pool_btc_usdt --proofs 1,$fund_manager_badge
+resim call-method $fund trade_radiswap $usdt 40 $pool_eth_usdt --proofs 1,$fund_manager_badge
+resim call-method $fund trade_radiswap $doge 100 $pool_doge_usdt --proofs 1,$fund_manager_badge
+resim show $fund
+
+acc3 hold 49 share tokens, and there exist in total 150 share tokens. When he call the witdraw function
+he will get almost 1/3 of all the tokens in the pool. Test witdrawing the funds. and check the fund and the wallet
+
+resim set-default-account $acc3 $pk3
+resim call-method $fund withdraw_tokens_from_fund 49,$share_token
+resim show $fund
+resim show $acc3
+
+fundmanager and defifund_admin can withtdraw the fee collected whenever they want. Try witdrawing them
+
+resim set-default-account $acc1 $pk1
+resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
+resim show $acc1
+
+resim set-default-account $acc2 $pk2
+resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_manager_badge
+resim show $acc2
+
+You have now hopefullu a simple understading of how the fund woroks. Down below is a overview over functions
+you call call to use the fund as you want. Try exploring with creating multiple funds forexample, and creating.
+To get a better understaidng of how the components works you should chekc you the src files.
+
+###Examples of transactiocalls. You can change the paramters yourselves. 
+
+##Transactiocalls for the defifunds_admin(acc1)
+resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
+
+##Transactioncalls for the fundmanager(acc2)
+resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
+resim call-method $fund change_deposit_fee_fund_manager 2 --proofs 1,$fund_manager_badge
+resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_manager_badge
+
+##transactioncalls for everyone
+resim call-method $defifunds new_fund 1000,$usdt 1000
+resim call-method $defifunds get_fund_addresses
+resim call-method $fund withdraw_tokens_from_fund 50,$share_token
+resim run transactions/deposit_usdt_and_doge_acc3.rtm
+#this last method method does not work with normal resim calls, beacuse of vec<Bucket>,
+# so you need to change the .rtm file if you want to chnage paramters.
+#When you deposit you need to deposit in about the same token ratio as the fund already has.
+#This can be combined with the radiswap component if you do not have the other tokens in the fund. 
 
 
 ##useful commands 
@@ -106,22 +158,12 @@ resim set-default-account $acc4 $pk4
 
 
 #these to show stuff
+resim show $defifunds
 resim show $fund
 resim show $acc1
 resim show $acc2
 resim show $acc3
 resim show $acc4
-
-
-
-
-#An example on how deposit works
-#share tokens=1000
-#tokens in fund 10 btc 20 eth
-#buckets contain 1btc and 2.1eth. -> ratio=0.1for btc and 0.10 for eth. min ratio=0.10
-#it will then exist 11btc 22eth in fund. 1100 of share tokens, and he will get 100 sharetokens. (min ratio*share tokens)
-
-
 
 
 

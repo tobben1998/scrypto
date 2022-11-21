@@ -1,3 +1,3 @@
-//mod defifunds;
+mod defifunds;
 mod fund;
 mod radiswap;
