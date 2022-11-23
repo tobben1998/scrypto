@@ -106,7 +106,7 @@ blueprint! {
         ///helper functions///
         ////////////////////// 
 
-        pub fn add_token_to_fund(&mut self, fund: Bucket){
+        fn add_token_to_fund(&mut self, fund: Bucket){
             let resource_address=fund.resource_address();
             
             //create a new vault if not exsisting
@@ -159,7 +159,7 @@ blueprint! {
                 .internal_fund_badge
                 .authorize(|| resource_manager.mint(new_share_tokens));
 
-            //deposit fee to the fund manager and to defifunds
+            //deposit fee to the fund manager and to defifunds admin
             let fee_fund_manager=(self.deposit_fee_fund_manager/dec!(100))*share_tokens.amount();
             let fee_defifunds=(self.deposit_fee_defifunds/dec!(100))*share_tokens.amount();
             self.fees_fund_manager_vault.put(share_tokens.take(fee_fund_manager));
@@ -218,7 +218,7 @@ blueprint! {
 
         }
 
-        //This function lets the fund manager trade with all the funds assest on whitelisted pools.
+        //This function lets the fund manager trade with all the funds assests on whitelisted pools.
         //token_address is the asset you want to trade from.
         pub fn trade_radiswap(&mut self, token_address: ResourceAddress, amount: Decimal, pool_address: ComponentAddress){
             assert!(self.whitelisted_pool_addresses.iter().any(|&i| i==pool_address));
@@ -227,6 +227,7 @@ blueprint! {
             let radiswap: RadiswapComponent = pool_address.into();
             let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().take(amount);
             let bucket_after_swap=radiswap.swap(bucket_before_swap);
+            info!("You traded {:?} {:?} for {:?} {:?}.", amount, token_address, bucket_after_swap.amount(), bucket_after_swap.resource_address());
 
             self.add_token_to_fund(bucket_after_swap);
 
@@ -240,6 +241,7 @@ blueprint! {
         /////////////////////////////////// 
 
         pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
+            info!("Pool with address {:?} is now whitelisted", self.deposit_fee_defifunds);
             self.whitelisted_pool_addresses.push(pool_address);
         }
 
@@ -259,4 +261,5 @@ blueprint! {
 
     }
 }
+
 
