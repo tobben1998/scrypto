@@ -82,12 +82,14 @@ export defifunds_admin_badge=$(echo "$defifunds" | sed -nr "s/.*Resource: ([[:al
 export defifunds=$(echo "$defifunds" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 ```
 
-Add some trading pools to the whitelist and set a fee for all deposits that go to admin of defifunds.
+Add some trading pools to the whitelist and set a fee for all deposits that go to admin of defifunds. instead of waiting 7 days for the new pools to be added you just change the epoch time in the simulator.
 
 ```sh
+resim set-current-epoch 0
 resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds new_pool_to_whitelist_all $pool_eth_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds new_pool_to_whitelist_all $pool_doge_usdt --proofs 1,$defifunds_admin_badge
+resim set-current-epoch 300
 
 resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
 ```
@@ -107,8 +109,6 @@ resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manag
 ```
 
 You have now created the essential components and are ready to go through a simple example to show how it works.
-
-
 
 ## Simple Example
 
@@ -173,38 +173,40 @@ resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_man
 resim show $acc2
 ```
 
-You now have a simple understanding of how defifunds work. You can for example explore by creating multiple funds. To get a better understanding of how the components work, you should check the src files. Down below is an overview of functions you can call to use the fund as you want. 
+You now have a simple understanding of how defifunds work. You can for example explore by creating multiple funds. To get a better understanding of how the components work, you should check the src files. Down below is an overview of functions you can call to use the fund as you want.
 
-
-## Examples of method calls 
+## Examples of method calls
 
 Method calls for the defifunds_admin
+
 ```sh
 resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds remove_pool_from_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
 ```
 
-
 Method calls for the fund manager
+
 ```sh
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
 resim call-method $fund change_deposit_fee_fund_manager 2 --proofs 1,$fund_manager_badge
 resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_manager_badge
 ```
 
-
 Method calls for everyone
+
 ```sh
 resim call-method $defifunds new_fund 1000,$usdt 1000
 resim call-method $defifunds get_fund_addresses
 resim call-method $fund withdraw_tokens_from_fund 50,$share_token
 resim run transactions/deposit_usdt_and_doge_acc3.rtm
 ```
-This last method does not work with normal resim calls, beacuse of vec<Bucket>, so you need to change the .rtm file if you want to change paramters. When you deposit you need to deposit in about the same token ratio as the fund already has. This can be combined with the radiswap component if you don't have the other tokens in the fund. 
 
+This last method does not work with normal resim calls, beacuse of vec<Bucket>, so you need to change the .rtm file if you want to change paramters. When you deposit you need to deposit in about the same token ratio as the fund already has. This can be combined with the radiswap component if you don't have the other tokens in the fund.
 
 change account
+
 ```sh
 resim set-default-account $acc1 $pk1
 resim set-default-account $acc2 $pk2
@@ -212,8 +214,8 @@ resim set-default-account $acc3 $pk3
 resim set-default-account $acc4 $pk4
 ```
 
-
 Show what the accounts contain.
+
 ```sh
 resim show $defifunds
 resim show $fund

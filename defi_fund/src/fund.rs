@@ -31,7 +31,7 @@ blueprint! {
         fees_defifunds_vault: Vault,
         deposit_fee_fund_manager: Decimal,
         deposit_fee_defifunds: Decimal,
-        whitelisted_pool_addresses: Vec<ComponentAddress>
+        whitelisted_pool_addresses: HashMap<ComponentAddress, u64> //whitelist valid from epoch <u64>
 
     }
 
@@ -42,7 +42,7 @@ blueprint! {
             initial_supply_share_tokens: Decimal, 
             defifund_admin_badge: ResourceAddress, 
             fee_defifund: Decimal,
-            whitelisted_pool_addresses: Vec<ComponentAddress> 
+            whitelisted_pool_addresses: HashMap<ComponentAddress, u64> 
         ) -> (ComponentAddress, Bucket, Bucket) {
 
             let fund_manager_badge: Bucket = ResourceBuilder::new_fungible()
@@ -69,15 +69,16 @@ blueprint! {
 
 
             let access_rules = AccessRules::new()
-                //.method("add_token_to_fund", rule!(require(internal_fund_badge.resource_address())))
                 .method("change_deposit_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
                 .method("withdraw_collected_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
                 .method("trade_radiswap", rule!(require(fund_manager_badge.resource_address())))
                 .method("new_pool_to_whitelist", rule!(require(defifund_admin_badge)))
+                .method("remove_pool_from_whitelist", rule!(require(defifund_admin_badge)))
                 .method("change_deposit_fee_defifunds", rule!(require(defifund_admin_badge)))
                 .method("withdraw_collected_fee_defifunds", rule!(require(defifund_admin_badge)))
                 .default(rule!(allow_all));
 
+                
                 
             let mut vaults = HashMap::new();
             vaults.insert(token.resource_address(),Vault::new(token.resource_address())); // adding a new vault to vaults: vaults<ResourceAddress, Vault>
@@ -221,7 +222,14 @@ blueprint! {
         //This function lets the fund manager trade with all the funds assests on whitelisted pools.
         //token_address is the asset you want to trade from.
         pub fn trade_radiswap(&mut self, token_address: ResourceAddress, amount: Decimal, pool_address: ComponentAddress){
-            assert!(self.whitelisted_pool_addresses.iter().any(|&i| i==pool_address));
+            //checks if the pool is whitelisted
+            let mut whitelisted=false;
+            for (&address, &epoch) in self.whitelisted_pool_addresses.iter(){
+                if address == pool_address && epoch <= Runtime::current_epoch(){
+                    whitelisted=true;
+                }
+            }
+            assert!(whitelisted, "trading pool is not yet whitelisted.");
 
             //do a trade using radiswap.
             let radiswap: RadiswapComponent = pool_address.into();
@@ -241,8 +249,13 @@ blueprint! {
         /////////////////////////////////// 
 
         pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
-            info!("Pool with address {:?} is now whitelisted", self.deposit_fee_defifunds);
-            self.whitelisted_pool_addresses.push(pool_address);
+            info!("Pool with address {:?} is now whitelisted", pool_address);
+            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
+        }
+
+        pub fn remove_pool_from_whitelist(&mut self, pool_address: ComponentAddress){
+            info!("Pool with address {:?} is now removed", pool_address);
+            self.whitelisted_pool_addresses.remove(&pool_address);
         }
 
         pub fn change_deposit_fee_defifunds(&mut self, new_fee: Decimal){
