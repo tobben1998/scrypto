@@ -58,9 +58,11 @@ defifunds=$(resim run "./transactions/instantiate_defifunds_acc1.rtm")
 export defifunds_admin_badge=$(echo "$defifunds" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
 export defifunds=$(echo "$defifunds" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 
+resim set-current-epoch 0
 resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds new_pool_to_whitelist_all $pool_eth_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds new_pool_to_whitelist_all $pool_doge_usdt --proofs 1,$defifunds_admin_badge
+resim set-current-epoch 300
 
 resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
 
@@ -130,6 +132,7 @@ To get a better understaidng of how the components works you should chekc you th
 
 ##Transactiocalls for the defifunds_admin(acc1)
 resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds remove_pool_from_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
 
