@@ -86,12 +86,12 @@ Add some trading pools to the whitelist and set a fee for all deposits that go t
 
 ```sh
 resim set-current-epoch 0
-resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds new_pool_to_whitelist_all $pool_eth_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds new_pool_to_whitelist_all $pool_doge_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_eth_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_doge_usdt --proofs 1,$defifunds_admin_badge
 resim set-current-epoch 300
 
-resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
 ```
 
 Create a new fund using account 2, and set a deposit fee that goes to the fund manager
@@ -180,10 +180,11 @@ You now have a simple understanding of how defifunds work. You can for example e
 Method calls for the defifunds_admin
 
 ```sh
-resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds remove_pool_from_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds remove_pool_from_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds withdraw_collected_fee_defifunds --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
 ```
 
 Method calls for the fund manager

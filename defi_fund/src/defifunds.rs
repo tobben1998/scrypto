@@ -9,8 +9,8 @@ blueprint! {
         funds: Vec<ComponentAddress>, //all funds in the application
         defifunds_admin_badge: ResourceAddress,
         whitelisted_pool_addresses: HashMap<ComponentAddress, u64>, //whitelist valid from epoch <u64>
-        defifunds_deposit_fee: Decimal
-
+        defifunds_deposit_fee: Decimal,
+        fee_vaults: HashMap<ResourceAddress, Vault>
     }
 
     impl Defifunds {
@@ -24,18 +24,19 @@ blueprint! {
                 .initial_supply(1);
 
             let access_rules = AccessRules::new()
-                .method("new_pool_to_whitelist_all", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("remove_pool_from_whitelist_all", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("change_deposit_fee_defifunds_all", rule!(require(defifunds_admin_badge.resource_address())))
+                .method("new_pool_to_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
+                .method("remove_pool_from_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
+                .method("change_deposit_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
+                .method("withdraw_collected_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
                 .method("withdraw_collected_fee_defifunds_all", rule!(require(defifunds_admin_badge.resource_address())))
                 .default(rule!(allow_all));
-                
 
             let mut component = Self {
                 funds: Vec::new(),
                 defifunds_admin_badge: defifunds_admin_badge.resource_address(),
                 whitelisted_pool_addresses: HashMap::new(),
-                defifunds_deposit_fee: dec!(0)
+                defifunds_deposit_fee: dec!(1),
+                fee_vaults: HashMap::new()
             }
             .instantiate();
             component.add_access_check(access_rules);
@@ -49,13 +50,10 @@ blueprint! {
         //////////////////////////// 
         
         pub fn new_fund(&mut self, token: Bucket, initial_supply_share_tokens: Decimal) -> (Bucket, Bucket){
-            
             let (fund, fund_manager_badge, share_tokens)=FundComponent::instantiate_fund(
                 token,
                 initial_supply_share_tokens,
-                self.defifunds_admin_badge, //the resourceaddress of defifund admin
-                self.defifunds_deposit_fee,
-                self.whitelisted_pool_addresses.clone()
+                Runtime::actor().as_component().0 //component address of Defifunds
             )
             .into();
             self.funds.push(fund.into());
@@ -63,13 +61,30 @@ blueprint! {
             (fund_manager_badge, share_tokens)
         }
 
+        //fund make use of this function to deposit the fee to the correct vault
+        pub fn add_token_to_fee_vaults(&mut self, token: Bucket){
+            let resource_address=token.resource_address();
+            
+            if !self.fee_vaults.contains_key(&resource_address){
+                let key=resource_address;
+                let value=Vault::new(resource_address);
+                self.fee_vaults.insert(key,value);
+            }
+
+            self.fee_vaults.get_mut(&resource_address).unwrap().put(token);
+        }
+
 
         pub fn get_fund_addresses(&mut self) -> Vec<ComponentAddress>{
-            let mut vec: Vec<ComponentAddress> = Vec::new();
-            for fund in self.funds.iter_mut(){
-                vec.push(*fund)
-            }
-            vec
+            self.funds.clone()
+        }
+
+        pub fn get_defifunds_deposit_fee(&mut self) -> Decimal{
+            self.defifunds_deposit_fee
+        }
+
+        pub fn get_whitelisted_pool_addresses(&mut self) -> HashMap<ComponentAddress, u64>{
+            self.whitelisted_pool_addresses.clone()
         }
 
 
@@ -78,42 +93,37 @@ blueprint! {
         ///functions for defifund admin///
         ////////////////////////////////// 
 
-        pub fn new_pool_to_whitelist_all(&mut self, pool_address: ComponentAddress){
+        pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
             self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
-            for fund in self.funds.iter_mut(){
-                Into::<FundComponent>::into(*fund).new_pool_to_whitelist(pool_address);
-            }
         }
 
-        pub fn remove_pool_from_whitelist_all(&mut self, pool_address: ComponentAddress){
+        pub fn remove_pool_from_whitelist(&mut self, pool_address: ComponentAddress){
             self.whitelisted_pool_addresses.remove(&pool_address);
-            for fund in self.funds.iter_mut(){
-                Into::<FundComponent>::into(*fund).remove_pool_from_whitelist(pool_address);
-            }
         }
 
-        pub fn change_deposit_fee_defifunds_all(&mut self, new_fee: Decimal){
+        pub fn change_deposit_fee_defifunds(&mut self, new_fee: Decimal){
             self.defifunds_deposit_fee=new_fee;
-            for fund in self.funds.iter_mut(){
-                Into::<FundComponent>::into(*fund).change_deposit_fee_defifunds(new_fee);
-            }
         }
 
-        pub fn withdraw_collected_fee_defifunds_all(&mut self) -> Vec<Bucket>{
-            let mut vec: Vec<Bucket> = Vec::new();
-            for fund in self.funds.iter_mut(){
-                vec.push(Into::<FundComponent>::into(*fund).withdraw_collected_fee_defifunds());
-            }
-            vec
+        pub fn withdraw_collected_fee_defifunds(&mut self, address: ResourceAddress) -> Bucket{
+            self.fee_vaults.get_mut(&address).unwrap().take_all()
         }
+        pub fn withdraw_collected_fee_defifunds_all(&mut self) -> Vec<Bucket>{
+            let mut tokens = Vec::new();
+            for vault in self.fee_vaults.values_mut(){
+                tokens.push(vault.take_all());
+            }
+            tokens
+        }
+
 
 
     }
 }
 
 //improvements that can be implemented later.
-//implemnt a time delay of say a week on new pool to whitelist incase defifund amind acts dishonest, or  
 //Need some oracles for most of this stuff.
 //for the future I can improve defifunds, by substitute the sharetokens with nfts represetning number of sharetokens, and what their value was at that momemnt.
 //I can then make some fees that only will be taken if the fund manger trade with profits. Forexample only take a withdraw of 10% if in profit when witdrawing. in xrd or usdt.
 //let user only deposit one token, and then automatically finds out the correct ratio, and calls deposit. Do the same for witdraw.
+//only have whitelist and admin in defifunds, and not in fund, uncesecary to update all places, if they should be same for all, but should they that? Can maybe combine the hole thing into a blueprint then, or?

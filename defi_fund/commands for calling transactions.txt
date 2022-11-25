@@ -59,12 +59,12 @@ export defifunds_admin_badge=$(echo "$defifunds" | sed -nr "s/.*Resource: ([[:al
 export defifunds=$(echo "$defifunds" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 
 resim set-current-epoch 0
-resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds new_pool_to_whitelist_all $pool_eth_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds new_pool_to_whitelist_all $pool_doge_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_eth_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_doge_usdt --proofs 1,$defifunds_admin_badge
 resim set-current-epoch 300
 
-resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
 
 resim set-default-account $acc2 $pk2
 
@@ -74,6 +74,11 @@ export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p"
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 
 resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manager_badge
+
+
+
+
+
 
 
 #Simple example
@@ -131,10 +136,12 @@ To get a better understaidng of how the components works you should chekc you th
 ###Examples of transactiocalls. You can change the paramters yourselves. 
 
 ##Transactiocalls for the defifunds_admin(acc1)
-resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds remove_pool_from_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds remove_pool_from_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds withdraw_collected_fee_defifunds --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds change_deposit_fee_defifunds_all 1 --proofs 1,$defifunds_admin_badge
+
 
 ##Transactioncalls for the fundmanager(acc2)
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge

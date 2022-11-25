@@ -18,6 +18,7 @@
 
 use scrypto::prelude::*;
 use crate::radiswap::*;
+use crate::defifunds::*;
 
 blueprint! {
 
@@ -28,10 +29,8 @@ blueprint! {
         internal_fund_badge: Vault,
         total_share_tokens: Decimal,
         fees_fund_manager_vault: Vault,
-        fees_defifunds_vault: Vault,
         deposit_fee_fund_manager: Decimal,
-        deposit_fee_defifunds: Decimal,
-        whitelisted_pool_addresses: HashMap<ComponentAddress, u64> //whitelist valid from epoch <u64>
+        defifunds: ComponentAddress, //defifunds component to get acces to whitelist and defifund depost fee
 
     }
 
@@ -39,10 +38,8 @@ blueprint! {
 
         pub fn instantiate_fund(
             token: Bucket, 
-            initial_supply_share_tokens: Decimal, 
-            defifund_admin_badge: ResourceAddress, 
-            fee_defifund: Decimal,
-            whitelisted_pool_addresses: HashMap<ComponentAddress, u64> 
+            initial_supply_share_tokens: Decimal,
+            defifunds: ComponentAddress
         ) -> (ComponentAddress, Bucket, Bucket) {
 
             let fund_manager_badge: Bucket = ResourceBuilder::new_fungible()
@@ -72,10 +69,6 @@ blueprint! {
                 .method("change_deposit_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
                 .method("withdraw_collected_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
                 .method("trade_radiswap", rule!(require(fund_manager_badge.resource_address())))
-                .method("new_pool_to_whitelist", rule!(require(defifund_admin_badge)))
-                .method("remove_pool_from_whitelist", rule!(require(defifund_admin_badge)))
-                .method("change_deposit_fee_defifunds", rule!(require(defifund_admin_badge)))
-                .method("withdraw_collected_fee_defifunds", rule!(require(defifund_admin_badge)))
                 .default(rule!(allow_all));
 
                 
@@ -91,10 +84,8 @@ blueprint! {
                 vaults: vaults,
                 total_share_tokens: initial_supply_share_tokens,
                 fees_fund_manager_vault: Vault::new(share_tokens.resource_address()),
-                fees_defifunds_vault: Vault::new(share_tokens.resource_address()),
                 deposit_fee_fund_manager: dec!(0),
-                deposit_fee_defifunds: fee_defifund,
-                whitelisted_pool_addresses: whitelisted_pool_addresses
+                defifunds: defifunds
             }
             .instantiate();
             component.add_access_check(access_rules);
@@ -107,8 +98,8 @@ blueprint! {
         ///helper functions///
         ////////////////////// 
 
-        fn add_token_to_fund(&mut self, fund: Bucket){
-            let resource_address=fund.resource_address();
+        fn add_token_to_fund(&mut self, token: Bucket){
+            let resource_address=token.resource_address();
             
             //create a new vault if not exsisting
             if !self.vaults.contains_key(&resource_address){
@@ -116,8 +107,8 @@ blueprint! {
                 let value=Vault::new(resource_address);
                 self.vaults.insert(key,value);
             }
-            //put funds in the vault with specified resource address.
-            self.vaults.get_mut(&resource_address).unwrap().put(fund);
+            //put token in the vault with specified resource address.
+            self.vaults.get_mut(&resource_address).unwrap().put(token);
         }
 
 
@@ -160,11 +151,14 @@ blueprint! {
                 .internal_fund_badge
                 .authorize(|| resource_manager.mint(new_share_tokens));
 
-            //deposit fee to the fund manager and to defifunds admin
+            //deposit fee to the fund manager and to defifunds
+            let defifunds: DefifundsComponent=self.defifunds.into();
+
             let fee_fund_manager=(self.deposit_fee_fund_manager/dec!(100))*share_tokens.amount();
-            let fee_defifunds=(self.deposit_fee_defifunds/dec!(100))*share_tokens.amount();
+            let fee_defifunds=(defifunds.get_defifunds_deposit_fee()/dec!(100))*share_tokens.amount();
+
             self.fees_fund_manager_vault.put(share_tokens.take(fee_fund_manager));
-            self.fees_defifunds_vault.put(share_tokens.take(fee_defifunds));
+            defifunds.add_token_to_fee_vaults(share_tokens.take(fee_defifunds));
             
             info!("returned share tokens: {:?}", share_tokens.amount());
             info!("share tokens fee: {:?}", fee_fund_manager);
@@ -200,8 +194,6 @@ blueprint! {
 
 
 
-
-
         ////////////////////////////////
         ///functions for fund manager///
         //////////////////////////////// 
@@ -224,7 +216,8 @@ blueprint! {
         pub fn trade_radiswap(&mut self, token_address: ResourceAddress, amount: Decimal, pool_address: ComponentAddress){
             //checks if the pool is whitelisted
             let mut whitelisted=false;
-            for (&address, &epoch) in self.whitelisted_pool_addresses.iter(){
+            let defifunds: DefifundsComponent= self.defifunds.into();
+            for (&address, &epoch) in defifunds.get_whitelisted_pool_addresses().iter(){
                 if address == pool_address && epoch <= Runtime::current_epoch(){
                     whitelisted=true;
                 }
@@ -240,36 +233,6 @@ blueprint! {
             self.add_token_to_fund(bucket_after_swap);
 
         }
-
-
-
-
-        ///////////////////////////////////
-        ///functions for defifunds admin///
-        /////////////////////////////////// 
-
-        pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
-            info!("Pool with address {:?} is now whitelisted", pool_address);
-            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
-        }
-
-        pub fn remove_pool_from_whitelist(&mut self, pool_address: ComponentAddress){
-            info!("Pool with address {:?} is now removed", pool_address);
-            self.whitelisted_pool_addresses.remove(&pool_address);
-        }
-
-        pub fn change_deposit_fee_defifunds(&mut self, new_fee: Decimal){
-            assert!(new_fee >= dec!(0) && new_fee <= dec!(5),"Fee need to be in range of 0% to 5%.");
-            self.deposit_fee_defifunds=new_fee;
-            info!("Deposit fee updated to: {:?}%", self.deposit_fee_defifunds);
-        }
-
-        pub fn withdraw_collected_fee_defifunds(&mut self) -> Bucket{
-            info!("witdrew {:?} sharetokens from vault.", self.fees_defifunds_vault.amount());
-            self.fees_defifunds_vault.take_all()
-        }
-
-
 
 
     }
