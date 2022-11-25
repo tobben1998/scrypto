@@ -112,14 +112,14 @@ resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manag
 
 ```
 
-Swap 20 usdt for Dogecoins in the fund .
+Swap 20 usdt for Dogecoins.
 
 ```sh
 resim set-default-account $acc2 $pk2
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
 ```
 
-You will now have 80 usdt and 199.9 doge. You can verify by doing:
+You will now have 80 usdt and 199.9 doge in the fund. You can verify by doing:
 
 ```sh
 resim show $fund
