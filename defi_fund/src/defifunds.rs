@@ -45,6 +45,20 @@ blueprint! {
                 
         }
 
+        //fund make use of this function to deposit the fee to the correct vault
+        //if other people decide to use this function it is just free money to the defifunds admin :D
+        pub fn add_token_to_fee_vaults(&mut self, token: Bucket){
+            let resource_address=token.resource_address();
+            
+            if !self.fee_vaults.contains_key(&resource_address){
+                let key=resource_address;
+                let value=Vault::new(resource_address);
+                self.fee_vaults.insert(key,value);
+            }
+
+            self.fee_vaults.get_mut(&resource_address).unwrap().put(token);
+        }
+
         ////////////////////////////
         ///functions for everyone///
         //////////////////////////// 
@@ -60,20 +74,6 @@ blueprint! {
 
             (fund_manager_badge, share_tokens)
         }
-
-        //fund make use of this function to deposit the fee to the correct vault
-        pub fn add_token_to_fee_vaults(&mut self, token: Bucket){
-            let resource_address=token.resource_address();
-            
-            if !self.fee_vaults.contains_key(&resource_address){
-                let key=resource_address;
-                let value=Vault::new(resource_address);
-                self.fee_vaults.insert(key,value);
-            }
-
-            self.fee_vaults.get_mut(&resource_address).unwrap().put(token);
-        }
-
 
         pub fn get_fund_addresses(&mut self) -> Vec<ComponentAddress>{
             self.funds.clone()
@@ -122,8 +122,7 @@ blueprint! {
 }
 
 //improvements that can be implemented later.
-//Need some oracles for most of this stuff.
+//Need some oracles for most of this stuff. not important for the safty of funds, as deposit token will handle retunrs if you not deposit in the same ratio.
 //for the future I can improve defifunds, by substitute the sharetokens with nfts represetning number of sharetokens, and what their value was at that momemnt.
 //I can then make some fees that only will be taken if the fund manger trade with profits. Forexample only take a withdraw of 10% if in profit when witdrawing. in xrd or usdt.
 //let user only deposit one token, and then automatically finds out the correct ratio, and calls deposit. Do the same for witdraw.
-//only have whitelist and admin in defifunds, and not in fund, uncesecary to update all places, if they should be same for all, but should they that? Can maybe combine the hole thing into a blueprint then, or?
