@@ -94,7 +94,11 @@ resim set-current-epoch 300
 resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
 ```
 
-Create a new fund using account 2, and set a deposit fee that goes to the fund manager
+You have now created the essential components and are ready to go through a simple example to show how it works.
+
+## Simple Example
+
+Start by createting a new fund using account 2, and set a deposit fee that goes to the fund manager
 
 ```sh
 resim set-default-account $acc2 $pk2
@@ -108,18 +112,14 @@ resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manag
 
 ```
 
-You have now created the essential components and are ready to go through a simple example to show how it works.
-
-## Simple Example
-
-You have already created a fund with 100usdt on acc2. Swap 20 of them for Dogecoin.
+Swap 20 usdt for Dogecoins.
 
 ```sh
 resim set-default-account $acc2 $pk2
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
 ```
 
-You will now have 80 usdt and 199.9 doge. You can verify by doing:
+You will now have 80 usdt and 199.9 doge in the fund. You can verify by doing:
 
 ```sh
 resim show $fund
