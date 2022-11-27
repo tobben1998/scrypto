@@ -103,7 +103,7 @@ Start by createting a new fund using account 2, and set a deposit fee that goes 
 ```sh
 resim set-default-account $acc2 $pk2
 
-fund=$(resim run "./transactions/new_fund_acc2.rtm")
+fund=$(resim call-method $defifunds new_fund 100,$usdt 100)
 export fund_manager_badge=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
 export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
