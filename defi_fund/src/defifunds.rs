@@ -63,8 +63,9 @@ blueprint! {
         ///functions for everyone///
         //////////////////////////// 
         
-        pub fn new_fund(&mut self, token: Bucket, initial_supply_share_tokens: Decimal) -> (Bucket, Bucket){
+        pub fn new_fund(&mut self, fund_name: String, token: Bucket, initial_supply_share_tokens: Decimal) -> (Bucket, Bucket){
             let (fund, fund_manager_badge, share_tokens)=FundComponent::instantiate_fund(
+                fund_name,
                 token,
                 initial_supply_share_tokens,
                 Runtime::actor().as_component().0 //component address of Defifunds

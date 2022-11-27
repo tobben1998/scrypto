@@ -24,6 +24,7 @@ blueprint! {
 
 
     struct Fund {
+        fund_name: String, 
         vaults: HashMap<ResourceAddress, Vault>, //where all the tokens in the fund are stored
         fund_manager_badge: ResourceAddress, 
         internal_fund_badge: Vault,
@@ -37,6 +38,7 @@ blueprint! {
     impl Fund {
 
         pub fn instantiate_fund(
+            fund_name: String,
             token: Bucket, 
             initial_supply_share_tokens: Decimal,
             defifunds: ComponentAddress
@@ -79,6 +81,7 @@ blueprint! {
 
 
             let mut component = Self {
+                fund_name: fund_name,
                 fund_manager_badge: fund_manager_badge.resource_address(),
                 internal_fund_badge: Vault::with_bucket(internal_fund_badge),
                 vaults: vaults,

@@ -68,7 +68,7 @@ resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifund
 
 resim set-default-account $acc2 $pk2
 
-fund=$(resim call-method $defifunds new_fund 100,$usdt 100)
+fund=$(resim call-method $defifunds new_fund "DegenFund" 100,$usdt 100)
 export fund_manager_badge=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
 export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
