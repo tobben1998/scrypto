@@ -1,21 +1,3 @@
-//useful code
-
-//see readme file to for how to make accounts, and call .rtm files
-//https://github.com/radixdlt/scrypto-challenges/tree/main/1-exchanges/RaDEX
-
-//i forhold til shareholder token
-//https://github.com/radixdlt/scrypto-examples/blob/main/core/payment-splitter/src/lib.rs
-
-//docs for creating transactions
-//https://docs.radixdlt.com/main/scrypto/transaction-manifest/specs.html
-
-//would use the external package I know what blueprint ociswap will use, but just use the internal for now with radiswap.
-//https://github.com/radixdlt/scrypto-examples/tree/main/core/cross-blueprint-call
-
-//for the trading fucntion on Radiswap 
-//https://github.com/radixdlt/scrypto-challenges/blob/main/3-lending/degenfi/src/degenfi.rs
-//line 419-427
-
 use scrypto::prelude::*;
 use crate::radiswap::*;
 use crate::defifunds::*;
@@ -31,7 +13,7 @@ blueprint! {
         total_share_tokens: Decimal,
         fees_fund_manager_vault: Vault,
         deposit_fee_fund_manager: Decimal,
-        defifunds: ComponentAddress, //defifunds component to get acces to whitelist and defifund depost fee
+        defifunds: ComponentAddress, //defifunds ComponentAddress to get access to whitelist and defifund deposit fee
 
     }
 
@@ -46,21 +28,21 @@ blueprint! {
 
             let fund_manager_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
-                .metadata("name", "fund manager badge")
-                .metadata("desciption", "Badge used for managing the fund, change fee and collecting fees")
+                .metadata("name", "Fund manager badge")
+                .metadata("desciption", "Badge used for managing the fund.")
                 .initial_supply(1);
 
 
             let internal_fund_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "Internal fund badge")
-                .metadata("desciption", "Badge that has the auhority to mint and burn share tokens")
+                .metadata("desciption", "Badge that has the auhority to mint and burn share tokens.")
                 .initial_supply(1);
 
 
             let share_tokens: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_MAXIMUM)
-                .metadata("name", "share tokens")
+                .metadata("name", "hare tokens")
                 .metadata("description", "Tokens used to show what share of the fund you have")
                 .mintable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
                 .burnable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
@@ -97,9 +79,10 @@ blueprint! {
                 
         }
 
-        //////////////////////
-        ///helper functions///
-        ////////////////////// 
+
+        ////////////////////
+        ///helper method////
+        //////////////////// 
 
         fn add_token_to_fund(&mut self, token: Bucket){
             let resource_address=token.resource_address();
@@ -117,16 +100,16 @@ blueprint! {
 
 
         
-        ////////////////////////////
-        ///functions for everyone///
-        //////////////////////////// 
+        //////////////////////////
+        ///methods for everyone///
+        //////////////////////////
 
 
-        //function for depositing tokens to the fund. You need to deposit each token that excist in the pool.
+        //method for depositing tokens to the fund. You need to deposit each token that exists in the pool.
         //tokens will be taken in the same ratio as the pool has, and the rest of the tokens will be returned back to you.
         pub fn deposit_tokens_to_fund(&mut self, mut tokens: Vec<Bucket>) -> (Bucket, Vec<Bucket>) {
 
-            //calculate min_ratio to find out how much you should take from each bucket.
+            //calculate min_ratio to find out how much you should take from each bucket,
             //so there is enough to take, an the ratio in the pool remains the same. The rest will be given back
             let mut ratio=tokens[0].amount()/self.vaults.get_mut(&tokens[0].resource_address()).unwrap().amount();
             let mut min_ratio=ratio;
@@ -142,9 +125,6 @@ blueprint! {
                 let amount=min_ratio*(self.vaults.get_mut(&token.resource_address()).unwrap().amount());
                 self.add_token_to_fund(token.take(amount));
             }
-
-            info!("min_ratio (tokens_deposited/(tokens_in_vault): {:?}", min_ratio);
-            info!("total share tokens before: {:?}", self.total_share_tokens);
 
             //mint new sharetokens
             let new_share_tokens=min_ratio*self.total_share_tokens;
@@ -163,18 +143,16 @@ blueprint! {
             self.fees_fund_manager_vault.put(share_tokens.take(fee_fund_manager));
             defifunds.add_token_to_fee_vaults(share_tokens.take(fee_defifunds));
             
-            info!("returned share tokens: {:?}", share_tokens.amount());
-            info!("share tokens fee: {:?}", fee_fund_manager);
-            info!("share tokens fee: {:?}", fee_defifunds);
-            info!("total share tokens after: {:?}", self.total_share_tokens);
-            
+            info!("Returned share tokens: {:?}.", share_tokens.amount());
+            info!("share tokens fee: {:?}.", fee_fund_manager+fee_defifunds);
+      
 
             (share_tokens, tokens)
         }
 
 
 
-        //function that witdraw tokens from the fund relative to how much sharetokens you put into the function.
+        //method that withdraw tokens from the fund relative to how much sharetokens you put into the method.
         pub fn withdraw_tokens_from_fund(&mut self, share_tokens: Bucket) -> Vec<Bucket> {
             assert!(share_tokens.resource_address()==self.fees_fund_manager_vault.resource_address(),"Wrong tokens sent. You need to send share tokens.");
             
@@ -182,7 +160,7 @@ blueprint! {
             let mut tokens = Vec::new();
             let your_share = share_tokens.amount()/self.total_share_tokens;
             for vault in self.vaults.values_mut(){
-                info!("witdrew {:?} {:?}", your_share*vault.amount(), vault.resource_address());
+                info!("Withdrew {:?} {:?}.", your_share*vault.amount(), vault.resource_address());
                 tokens.push(vault.take(your_share*vault.amount()));
             }
 
@@ -197,26 +175,27 @@ blueprint! {
 
 
 
-        ////////////////////////////////
-        ///functions for fund manager///
-        //////////////////////////////// 
+        //////////////////////////////
+        ///methods for fund manager///
+        ////////////////////////////// 
 
 
         pub fn withdraw_collected_fee_fund_manager(&mut self) -> Bucket{
-            info!("witdrew {:?} sharetokens from vault.", self.fees_fund_manager_vault.amount());
+            info!("Withdrew {:?} sharetokens from vault.", self.fees_fund_manager_vault.amount());
             self.fees_fund_manager_vault.take_all()
         }
 
         pub fn change_deposit_fee_fund_manager(&mut self, new_fee: Decimal){
             assert!(new_fee >= dec!(0) && new_fee <= dec!(5),"Fee need to be in range of 0% to 5%.");
             self.deposit_fee_fund_manager=new_fee;
-            info!("Deposit fee updated to: {:?}%", self.deposit_fee_fund_manager);
+            info!("Deposit fee updated to: {:?}%.", self.deposit_fee_fund_manager);
 
         }
 
-        //This function lets the fund manager trade with all the funds assests on whitelisted pools.
+        //This method lets the fund manager trade with all the funds assests on whitelisted pools.
         //token_address is the asset you want to trade from.
         pub fn trade_radiswap(&mut self, token_address: ResourceAddress, amount: Decimal, pool_address: ComponentAddress){
+            
             //checks if the pool is whitelisted
             let mut whitelisted=false;
             let defifunds: DefifundsComponent= self.defifunds.into();
@@ -225,7 +204,7 @@ blueprint! {
                     whitelisted=true;
                 }
             }
-            assert!(whitelisted, "trading pool is not yet whitelisted.");
+            assert!(whitelisted, "Trading pool is not yet whitelisted.");
 
             //do a trade using radiswap.
             let radiswap: RadiswapComponent = pool_address.into();

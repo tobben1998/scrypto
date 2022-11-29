@@ -138,6 +138,7 @@ You have not deposited to the fund and received 49 share tokens. One share token
 ```sh
 resim show $acc3
 resim show $fund
+resim show $defifunds
 ```
 
 The fund manager can now do trades with all the funds, but he has no access to withdraw them.
