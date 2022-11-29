@@ -1,4 +1,3 @@
-
 use scrypto::prelude::*;
 use crate::fund::*;
 
@@ -6,7 +5,7 @@ blueprint! {
 
 
     struct Defifunds {
-        funds: Vec<ComponentAddress>, //all funds in the application
+        funds: Vec<ComponentAddress>, //all funds in the dapp
         defifunds_admin_badge: ResourceAddress,
         whitelisted_pool_addresses: HashMap<ComponentAddress, u64>, //whitelist valid from epoch <u64>
         defifunds_deposit_fee: Decimal,
@@ -19,7 +18,7 @@ blueprint! {
 
             let defifunds_admin_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
-                .metadata("name", "defifunds_admin_badge")
+                .metadata("name", "defifunds admin badge")
                 .metadata("desciption", "Badge used for the admin stuff")
                 .initial_supply(1);
 
@@ -45,8 +44,8 @@ blueprint! {
                 
         }
 
-        //fund make use of this function to deposit the fee to the correct vault
-        //if other people decide to use this function it is just free money to the defifunds admin :D
+        //fund make use of this method to deposit the fee to the correct vault
+        //if other people decide to use this method it is just free money to the defifunds admin :D
         pub fn add_token_to_fee_vaults(&mut self, token: Bucket){
             let resource_address=token.resource_address();
             
@@ -59,9 +58,9 @@ blueprint! {
             self.fee_vaults.get_mut(&resource_address).unwrap().put(token);
         }
 
-        ////////////////////////////
-        ///functions for everyone///
-        //////////////////////////// 
+        //////////////////////////
+        ///methods for everyone///
+        //////////////////////////
         
         pub fn new_fund(&mut self, fund_name: String, token: Bucket, initial_supply_share_tokens: Decimal) -> (Bucket, Bucket){
             let (fund, fund_manager_badge, share_tokens)=FundComponent::instantiate_fund(
@@ -90,9 +89,9 @@ blueprint! {
 
 
 
-        //////////////////////////////////
-        ///functions for defifund admin///
-        ////////////////////////////////// 
+        ////////////////////////////////
+        ///methods for defifund admin///
+        ////////////////////////////////
 
         pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
             self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
@@ -122,8 +121,3 @@ blueprint! {
     }
 }
 
-//improvements that can be implemented later.
-//Need some oracles for most of this stuff. not important for the safty of funds, as deposit token will handle retunrs if you not deposit in the same ratio.
-//for the future I can improve defifunds, by substitute the sharetokens with nfts represetning number of sharetokens, and what their value was at that momemnt.
-//I can then make some fees that only will be taken if the fund manger trade with profits. Forexample only take a withdraw of 10% if in profit when witdrawing. in xrd or usdt.
-//let user only deposit one token, and then automatically finds out the correct ratio, and calls deposit. Do the same for witdraw.
