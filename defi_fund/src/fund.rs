@@ -42,7 +42,7 @@ blueprint! {
 
             let share_tokens: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_MAXIMUM)
-                .metadata("name", "hare tokens")
+                .metadata("name", "share tokens")
                 .metadata("description", "Tokens used to show what share of the fund you have")
                 .mintable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
                 .burnable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
