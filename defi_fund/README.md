@@ -1,18 +1,18 @@
 # DeFi Fund
 
-This is a proof-of-concept crypto blueprint that lets you create or join a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also join a fund that someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fund manager. He has never access to withdraw your funds.
+This is a proof-of-concept scrypto blueprint that lets you create or join a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also join a fund that someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fund manager. He has never access to withdraw your funds.
 
 ## Getting Started
 
-If you haven't installed essentials for crypto yet, look here first: https://docs.radixdlt.com/main/scrypto/getting-started/install-scrypto.html. If you haven't cloned the GitHub repo, you need to clone the repo and then move it into the defi_fund folder before you can follow the instructions below.
+If you haven't installed essentials for scrypto yet, look here first: https://docs.radixdlt.com/main/scrypto/getting-started/install-scrypto.html. If you haven't cloned the GitHub repo, you need to clone the repo and then move it into the defi_fund folder before you can follow the instructions below.
 
-Start by resetting the simulator:
+Start by reseting the radix egine simulator.
 
 ```sh
 resim reset
 ```
 
-Create some new accounts:
+You will then need to create some new accounts.
 
 ```sh
 op1=$(resim new-account)
@@ -29,8 +29,7 @@ export pk4=$(echo "$op4" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc4=$(echo "$op4" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
 ```
 
-Create some tokens to test with and send some tokens to the different accounts you created:
-
+Create some new tokens, and send tokens to the different accounts you just created.
 ```sh
 resim set-default-account $acc1 $pk1
 
@@ -58,15 +57,13 @@ resim transfer 100000 $doge $acc3
 resim transfer 100000 $doge $acc4
 ```
 
-Publish the package:
-
+Publish the package containg the three blueprints.
 ```sh
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
 ```
 
-Created some pools using the radiswap component, so you can test trading.
-
+Create some new trading pools using the radiswap blueprint.
 ```sh
 pools=$(resim run "./transactions/instantiate_radiswap_pools_acc1.rtm")
 export pool_btc_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
@@ -74,32 +71,35 @@ export pool_eth_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\
 export pool_doge_usdt=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 ```
 
-Create a defifund component. The main purpose of the defi component is to organize all the different funds created and have control of what pools can be used for trading. It will also collect fees.
-
+Instantiate defifunds using the defifunds blueprint.
 ```sh
 defifunds=$(resim run "./transactions/instantiate_defifunds_acc1.rtm")
 export defifunds_admin_badge=$(echo "$defifunds" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p")
 export defifunds=$(echo "$defifunds" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 ```
 
-Add some trading pools to the whitelist and set a fee for all deposits that go to admin of defifunds. instead of waiting 7 days for the new pools to be added you just change the epoch time in the simulator.
-
+Finally add some radiswap pools to the whitelist in the defifunds component. Beacause of the 300
+epoch delay feature explained in 4.2.2 you also need to move 300 epochs forward in time.
 ```sh
 resim set-current-epoch 0
 resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds new_pool_to_whitelist $pool_eth_usdt --proofs 1,$defifunds_admin_badge
 resim call-method $defifunds new_pool_to_whitelist $pool_doge_usdt --proofs 1,$defifunds_admin_badge
 resim set-current-epoch 300
-
-resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
 ```
+You have now created all the essistal components in the dapp, and are ready to start going through
+some examples.
 
-You have now created the essential components and are ready to go through a simple example to show how it works.
 
-## Simple Example
 
-Start by createting a new fund using account 2, and set a deposit fee that goes to the fund manager
+## Example - Basic features
 
+In this example I will go through the basic features of the defifunds dapp. Creating a fund, depositing and witdrawing from a fund, trading with the tokens in a fund, and witdrawing the collected fee.
+
+Start by creating a new fund using account 2 and change the deposit fee. Let the name be
+"DegenFund", place a bucket with 100 usdt and set inital sharetokens to be 100. Account 2 will
+now be the fundmanager of "DegenFund". He will recieve a badge used to get access to the methods
+only available for the fundmanager and some sharetokens represting his share of the fund.
 ```sh
 resim set-default-account $acc2 $pk2
 
@@ -109,41 +109,38 @@ export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p"
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
 
 resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manager_badge
-
 ```
 
-Swap 20 usdt for Dogecoins.
-
+The fund you created now contains 100 usdt. Lets swap 20 of those usdt for dogecoin.
 ```sh
 resim set-default-account $acc2 $pk2
 resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
 ```
 
-You will now have 80 usdt and 199.9 doge in the fund. You can verify by doing:
-
+The fund now contains 80 usdt and 199.99 doge. you can verify by calling:
 ```sh
 resim show $fund
 ```
 
-Switch to acc3 and deposit to the fund in ish the same ratio as the fund. for example 40usdt and 100doge
-If your account does not hold the tokens needed, you can use the radiswap component to get the correct tokens.
-
+Swicth to another user for example account 3 and deposit 40 usdt and 100 doge. The command
+below uses a transaction manifest, and you can edit the parmeters by editing the ".rtm" file. The
+method you call need tokens in about the same ratio as the fund. If you don’t have the tokens
+needed you can use the radiswap component and swap to the correct amounts. Swaping and
+depositing can be done in the same transaction using a transaction manifest.
 ```sh
 resim set-default-account $acc3 $pk3
 resim run transactions/deposit_usdt_and_doge_acc3.rtm
 ```
 
-You have not deposited to the fund and received 49 share tokens. One share token has been taken as a fee. You can verify by doing:
-
+You have now deposited to the fund and received 49 share tokens. One share token has been taken
+as a fee. You can verify by doing:
 ```sh
 resim show $acc3
 resim show $fund
 resim show $defifunds
 ```
 
-The fund manager can now do trades with all the funds, but he has no access to withdraw them.
-Let's do some trades with the fund manager and check the fund again
-
+Let’s switch back to the fundmanager account and do some trades with the tokens in the fund.
 ```sh
 resim set-default-account $acc2 $pk2
 resim call-method $fund trade_radiswap $usdt 40 $pool_btc_usdt --proofs 1,$fund_manager_badge
@@ -152,9 +149,10 @@ resim call-method $fund trade_radiswap $doge 100 $pool_doge_usdt --proofs 1,$fun
 resim show $fund
 ```
 
-acc3 holds 49 share tokens, and there exists in total 150 share tokens. When he calls the withdraw function,
-he will get almost 1/3 of all the tokens in the pool. Test withdrawing the funds, and check the fund and the wallet.
-
+Account 3 holds 49 share tokens, and there exists in total 150 share tokens. When he calls the
+withdraw function, he will get almost 1/3 of tokens in the fund. If you want to get one token
+instead of many different when you withdraw, you can use the radiswap component to swap them
+into one. You can use the transaction manifest and do it all in a single transaction.
 ```sh
 resim set-default-account $acc3 $pk3
 resim call-method $fund withdraw_tokens_from_fund 49,$share_token
@@ -162,8 +160,8 @@ resim show $fund
 resim show $acc3
 ```
 
-Fund managers and defifund_admin can withdraw the fee collected whenever they want. Try withdrawing them
-
+Some fees have been collected from useres depositing to the fund. You can collect the fees by
+calling the methods below:
 ```sh
 resim set-default-account $acc1 $pk1
 resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
@@ -173,56 +171,80 @@ resim set-default-account $acc2 $pk2
 resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_manager_badge
 resim show $acc2
 ```
+You have now gone through a simple example of how defifunds work. If you want to explore more
+you can forexample create multiple funds. To get a better understanding of how the components
+and methods work, you should check the source files.
 
-You now have a simple understanding of how defifunds work. You can for example explore by creating multiple funds. To get a better understanding of how the components work, you should check the src files. Down below is an overview of functions you can call to use the fund as you want.
 
-## Examples of method calls
+## Examples - Misusing methods
 
-Method calls for the defifunds_admin
+### 1. Withdraw from the fund
 
+The first example is just to give a clearer explenation of how componets work. The only method
+that lets you withdraw tokens from the fund directly is the "witdraw tokens from fund" method.
+There is no "owner" of the fund component, and all the rules for who can do what with the
+component are defined in the blueprint. You can for example try to call the "withdraw tokens
+from fund" method with more share tokens than you have.
 ```sh
-resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds remove_pool_from_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds withdraw_collected_fee_defifunds --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
+resim set-default-account $acc2 $pk2
+resim call-method $fund withdraw_tokens_from_fund 120,$share_token
 ```
+The method will obvisoly fail because you don’t have enough share tokens. There is no other way
+to directly take tokens from the fund to your account. The other way tokens is moved from the
+fund is through the "trade radiswap" method. A potenial misuse of this method is covered in the
+last example.
 
-Method calls for the fund manager
 
-```sh
-resim call-method $fund trade_radiswap $usdt 20 $pool_doge_usdt --proofs 1,$fund_manager_badge
-resim call-method $fund change_deposit_fee_fund_manager 2 --proofs 1,$fund_manager_badge
-resim call-method $fund withdraw_collected_fee_fund_manager --proofs 1,$fund_manager_badge
-```
+### 2. Withdraw collected fee
 
-Method calls for everyone
-
-```sh
-resim call-method $defifunds new_fund 1000,$usdt 1000
-resim call-method $defifunds get_fund_addresses
-resim call-method $fund withdraw_tokens_from_fund 50,$share_token
-resim run transactions/deposit_usdt_and_doge_acc3.rtm
-```
-
-This last method does not work with normal resim calls, beacuse of vec<Bucket>, so you need to change the .rtm file if you want to change paramters. When you deposit you need to deposit in about the same token ratio as the fund already has. This can be combined with the radiswap component if you don't have the other tokens in the fund.
-
-change account
-
+Lets test to call the "withdraw collected fee fund manager" method with another user than the
+fundmanager.
 ```sh
 resim set-default-account $acc1 $pk1
-resim set-default-account $acc2 $pk2
-resim set-default-account $acc3 $pk3
-resim set-default-account $acc4 $pk4
+resim call-method $fund withdraw_collected_fee_fund_manager
 ```
+If you do so you will get an AuthorizationError. It failes because of the acces rule defined in the
+instantiate fund function. The only one that can call the function is the account holding the fund
+manager badge.
 
-Show what the accounts contain.
 
+### 3. Adding a malicious pool to the whitelist
+
+
+Lets first explain how a tradingpool can be malicious and then go into two scenarios. When doing
+a trade between token A and token B you are supposed to get the same dollar amount of token
+B as you swap with token A minus some fees. A pool can be malicous if that is not the case. A
+person can create a pool with 100 tokens he created him selves and pool them with 1 usdt. If a
+trader decides to use that pool he would basically give the creater of that pool usdt and getting a
+token worth nothing in return.
+
+A scenario where this can be missused is if a fundmanager is able to compromise the defifunds
+admin wallet. He will then add a maliciuos pool to the whitelist and try to trade with it.
 ```sh
-resim show $defifunds
-resim show $fund
-resim show $acc1
-resim show $acc2
-resim show $acc3
-resim show $acc4
+resim set-default-account $acc1 $pk1
+pools=$(resim run "./transactions/instantiate_malicious_pool_acc1.rtm")
+export pool_malicious=$(echo "$pools" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+resim call-method $defifunds new_pool_to_whitelist $pool_malicious --proofs 1,$defifunds_admin_badge
+
+resim set-default-account $acc2 $pk2
+resim call-method $fund trade_radiswap $btc 20 $pool_malicious --proofs 1,$fund_manager_badge
 ```
+He wont have acces to trade on that pool before the 300 epocs has occured. The creator of defifunds
+can then call the "remove pool from whitelist" method and warn useres to withdraw their funds.
+As long as the owner still has access to his wallet, like he most likely has, he can continue to call
+the "remove pool from whitelist" method if the pool is re-added. The users will then get in practie
+idenfently time to withdraw their funds.
+
+Another scenario that could occur is that the admin of defifunds decides to add a malicious pool
+him selves, beacuse he controlls a large fund and want to empty it. Some useres will likley monitor
+this whitelist and warn other users to withdraw. To expect that all users would be able to withdraw
+their tokens from the fund that the admin of defifunds controll within 7 days is optimstic, however
+a huge portin will likely be able to do so. To further increase the safty of this unlikly event,
+as incentives most likely are going against the admin to act dishonest, could be to extend the
+timedealy.
+
+To totally avoid the trust for an admin to controll a whitelist with timedelays a whitelist can
+be added when the Defifunds component is created. The incovincie here is that a new Defifunds
+component would need to be made if new tradingpools should be added. Another complex solution
+that would minimize the chance of maliciuos pools beeing added could be to create a DAO that
+controls the whitelist.
