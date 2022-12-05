@@ -1,6 +1,11 @@
-# DeFi Fund
+# DefiFunds
 
-This is a proof-of-concept scrypto blueprint that lets you create or join a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also join a fund that someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fund manager. He has never access to withdraw your funds.
+This is a proof of conept a dapp where traders can create decentralized
+funds and everyday people can invest in them. Traders will effectivly show if they can trade
+profitable or not, and do not need to go into the complex process of creating a centralized hedge
+fund for getting everyday people to buy their fund. Everyday useres will have the convienice
+of being able to invest in the defi ecosystem, without doing the trading themselves or go to a
+centralized platform.
 
 ## Getting Started
 
