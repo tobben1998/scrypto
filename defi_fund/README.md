@@ -1,4 +1,4 @@
-# DeFi Fund
+# DefiFunds
 
 This is a proof-of-concept crypto blueprint that lets you create or join a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also join a fund that someone else has created. They will then trade on your behalf. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fund manager. He has never access to withdraw your funds.
 
