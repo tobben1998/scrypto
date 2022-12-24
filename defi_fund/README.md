@@ -58,10 +58,13 @@ resim transfer 100000 $doge $acc3
 resim transfer 100000 $doge $acc4
 ```
 
-Publish the package:
+Publish the package. Account 1 can edit the pkg metadata:
 
 ```sh
-pkg=$(resim publish ".")
+pkg_badge=$(resim new-simple-badge)
+export pkg_badge=$(echo "$pkg_badge" | sed -nr "s/.*NFAddress: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+
+pkg=$(resim publish "." --owner-badge $pkg_badge)
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
 ```
 

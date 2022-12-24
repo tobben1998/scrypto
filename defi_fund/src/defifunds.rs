@@ -23,12 +23,12 @@ blueprint! {
                 .initial_supply(1);
 
             let access_rules = AccessRules::new()
-                .method("new_pool_to_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("remove_pool_from_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("change_deposit_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("withdraw_collected_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("withdraw_collected_fee_defifunds_all", rule!(require(defifunds_admin_badge.resource_address())))
-                .default(rule!(allow_all));
+                .method("new_pool_to_whitelist", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("remove_pool_from_whitelist", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("change_deposit_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("withdraw_collected_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("withdraw_collected_fee_defifunds_all", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .default(rule!(allow_all), AccessRule::DenyAll);
 
             let mut component = Self {
                 funds: Vec::new(),

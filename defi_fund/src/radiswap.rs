@@ -150,6 +150,79 @@ blueprint! {
             (a_withdrawn, b_withdrawn)
         }
 
+
+        pub fn get_price(
+            &self,
+            first_resource_address: ResourceAddress,
+        ) -> Decimal {
+            assert!(first_resource_address==self.a_pool.resource_address()
+                 || first_resource_address==self.b_pool.resource_address());
+
+            let x: Decimal;
+            let y: Decimal;
+            if first_resource_address==self.a_pool.resource_address(){
+                x = self.a_pool.amount();
+                y = self.b_pool.amount();
+            } else {
+                y = self.a_pool.amount();
+                x = self.b_pool.amount();
+            };
+
+            let price: Decimal = y/x; 
+            return price;
+        }
+
+        /// Calculates the amount of output that can be given for for a given amount of input.
+        pub fn calculate_output_amount(
+            &self,
+            input_resource_address: ResourceAddress,
+            input_amount: Decimal
+        ) -> Decimal {
+            assert!(input_resource_address==self.a_pool.resource_address()
+                 || input_resource_address==self.b_pool.resource_address());
+            let x: Decimal;
+            let y: Decimal;
+            if input_resource_address==self.a_pool.resource_address(){
+                x = self.a_pool.amount();
+                y = self.b_pool.amount();
+            } else {
+                y = self.a_pool.amount();
+                x = self.b_pool.amount();
+            };
+            let dx: Decimal = input_amount;
+            let r: Decimal = (dec!("100") - self.fee) / dec!("100");
+
+            let dy: Decimal = (dx * r * y) / ( x + r * dx );
+            return dy;
+        }
+
+
+        /// Calculates the amount of input required to receive the specified amount of output tokens.
+        pub fn calculate_input_amount(
+            &self,
+            output_resource_address: ResourceAddress,
+            output_amount: Decimal
+        ) -> Decimal {
+            assert!(output_resource_address==self.a_pool.resource_address()
+                 || output_resource_address==self.b_pool.resource_address());
+
+            let x: Decimal;
+            let y: Decimal;
+            if output_resource_address==self.b_pool.resource_address(){
+                x = self.a_pool.amount();
+                y = self.b_pool.amount();
+            } else {
+                y = self.a_pool.amount();
+                x = self.b_pool.amount();
+            };
+            let dy: Decimal = output_amount;
+            let r: Decimal = (dec!("100") - self.fee) / dec!("100");
+
+            let dx: Decimal = (dy * x) / (r * (y - dy));
+            return dx;
+        }
+
+
         /// Swaps token A for B, or vice versa.
         pub fn swap(&mut self, input_tokens: Bucket) -> Bucket {
             // Get the resource manager of the lp tokens

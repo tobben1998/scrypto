@@ -44,16 +44,16 @@ blueprint! {
                 .divisibility(DIVISIBILITY_MAXIMUM)
                 .metadata("name", "hare tokens")
                 .metadata("description", "Tokens used to show what share of the fund you have")
-                .mintable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
-                .burnable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
+                .mintable(rule!(require(internal_fund_badge.resource_address())), AccessRule::DenyAll)
+                .burnable(rule!(require(internal_fund_badge.resource_address())), AccessRule::DenyAll)
                 .initial_supply(initial_supply_share_tokens);
 
 
             let access_rules = AccessRules::new()
-                .method("change_deposit_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
-                .method("withdraw_collected_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
-                .method("trade_radiswap", rule!(require(fund_manager_badge.resource_address())))
-                .default(rule!(allow_all));
+                .method("change_deposit_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
+                .method("withdraw_collected_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
+                .method("trade_radiswap", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
+                .default(rule!(allow_all), AccessRule::DenyAll);
 
                 
                 
@@ -98,6 +98,34 @@ blueprint! {
         }
 
 
+        //maybe wait with making this function til you know how the blueprint you are gonnad use will look like
+        //maybe include what pairs are in the the whitelist. Not only the component address
+        //get the fund value in the resource address you specify
+        pub fn get_token_value_fund(&mut self, token_rri: ResourceAddress) -> Decimal{
+            let value: Decimal=dec!(0);
+            let defifunds: DefifundsGlobalComponentRef=self.defifunds.into();
+            for (&resource_address, &vault) in self.vaults.iter(){
+                for (&address, &epoch) in defifunds.get_whitelisted_pool_addresses().iter(){
+                    let radiswap: RadiswapGlobalComponentRef=address.into();
+                    if epoch <= Runtime::current_epoch()
+                    &&(token_rri==radiswap.get_pair().0 || token_rri==radiswap.get_pair().1)
+                    {
+                        let radiswap: RadiswapGlobalComponentRef=address.into();
+                        value+=radiswap.get_price(token_rri);
+                    }
+                }
+            }
+            value
+        }
+
+        //get the fund portfilio relative to xrd value on Radiswap. Hashmap<token, share in percentage>
+        // pub fn get_fund_portfolio(&mut self)-> HashMap<ResourceAddress, Decimal>{
+        //     let portfolio=HashMap::new();
+        //     for (&address, &vault) in self.vaults.iter(){
+
+        //     }
+        // }
+
 
         
         //////////////////////////
@@ -135,7 +163,7 @@ blueprint! {
                 .authorize(|| resource_manager.mint(new_share_tokens));
 
             //deposit fee to the fund manager and to defifunds
-            let defifunds: DefifundsComponent=self.defifunds.into();
+            let defifunds: DefifundsGlobalComponentRef=self.defifunds.into();
 
             let fee_fund_manager=(self.deposit_fee_fund_manager/dec!(100))*share_tokens.amount();
             let fee_defifunds=(defifunds.get_defifunds_deposit_fee()/dec!(100))*share_tokens.amount();
@@ -174,6 +202,37 @@ blueprint! {
         }
 
 
+        // //swap token for tokens needed for the pool. (Used in combination with deposit tokens)
+        // pub fn swap_token_for_tokens(&mut self, token: Bucket) -> Vec<Bucket>.{
+        //     let defifunds: DefifundsGlobalComponentRef=self.defifunds.into();
+        //     let buckets_after vec<Bucket>;
+        //     for token
+
+        // }
+        
+        //maybe wait with making this function til you know how the blueprint you are gonnad use will look like
+        //maybe include what pairs are in the the whitelist. Not only the component address
+        //swap tokens for token specified by the resource_address. (Used in combination with withdraw tokens)
+        pub fn swap_tokens_for_token(&mut self, tokens: Vec<Bucket>, token_address: ResourceAddress) -> Bucket{
+            let defifunds: DefifundsGlobalComponentRef=self.defifunds.into();
+            let bucket_after: Bucket;
+
+            for token in tokens{
+                for (&address, &epoch) in defifunds.get_whitelisted_pool_addresses().iter(){ //do I need this for loop to get the resource_address?
+                    if epoch <= Runtime::current_epoch(){
+                        let radiswap: RadiswapGlobalComponentRef=address.into();
+                        if (token.resource_address()==radiswap.get_pair().0 && token_address==radiswap.get_pair().1)
+                        ||(token.resource_address()==radiswap.get_pair().1 && token_address==radiswap.get_pair().0){
+                            bucket_after.put(radiswap.swap(token));
+                            break;
+                        }
+                    }
+                }
+            }
+            bucket_after
+        }
+
+
 
         //////////////////////////////
         ///methods for fund manager///
@@ -198,7 +257,7 @@ blueprint! {
             
             //checks if the pool is whitelisted
             let mut whitelisted=false;
-            let defifunds: DefifundsComponent= self.defifunds.into();
+            let defifunds: DefifundsGlobalComponentRef= self.defifunds.into();
             for (&address, &epoch) in defifunds.get_whitelisted_pool_addresses().iter(){
                 if address == pool_address && epoch <= Runtime::current_epoch(){
                     whitelisted=true;
@@ -207,7 +266,7 @@ blueprint! {
             assert!(whitelisted, "Trading pool is not yet whitelisted.");
 
             //do a trade using radiswap.
-            let radiswap: RadiswapComponent = pool_address.into();
+            let radiswap: RadiswapGlobalComponentRef = pool_address.into();
             let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().take(amount);
             let bucket_after_swap=radiswap.swap(bucket_before_swap);
             info!("You traded {:?} {:?} for {:?} {:?}.", amount, token_address, bucket_after_swap.amount(), bucket_after_swap.resource_address());
