@@ -54,16 +54,16 @@ blueprint! {
                 .divisibility(DIVISIBILITY_MAXIMUM)
                 .metadata("name", "hare tokens")
                 .metadata("description", "Tokens used to show what share of the fund you have")
-                .mintable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
-                .burnable(rule!(require(internal_fund_badge.resource_address())),LOCKED)
+                .mintable(rule!(require(internal_fund_badge.resource_address())),AccessRule::DenyAll)
+                .burnable(rule!(require(internal_fund_badge.resource_address())),AccessRule::DenyAll)
                 .initial_supply(initial_supply_share_tokens);
 
 
             let access_rules = AccessRules::new()
-                .method("change_deposit_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
-                .method("withdraw_collected_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())))
-                .method("trade_radiswap", rule!(require(fund_manager_badge.resource_address())))
-                .default(rule!(allow_all));
+                .method("change_deposit_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())),AccessRule::DenyAll)
+                .method("withdraw_collected_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())),AccessRule::DenyAll)
+                .method("trade_radiswap", rule!(require(fund_manager_badge.resource_address())),AccessRule::DenyAll)
+                .default(rule!(allow_all),AccessRule::DenyAll);
 
                 
                 
@@ -221,7 +221,7 @@ blueprint! {
             assert!(whitelisted, "Trading pool is not yet whitelisted.");
 
             //do a trade using radiswap.
-            let radiswap: RadiswapComponent = pool_address.into();
+            let radiswap: RadiswapGlobalComponentRef = pool_address.into();
             let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().take(amount);
             let bucket_after_swap=radiswap.swap(bucket_before_swap);
             info!("You traded {:?} {:?} for {:?} {:?}.", amount, token_address, bucket_after_swap.amount(), bucket_after_swap.resource_address());

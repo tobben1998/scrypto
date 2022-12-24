@@ -22,12 +22,11 @@ blueprint! {
                 .initial_supply(1);
 
             let access_rules = AccessRules::new()
-                .method("new_pool_to_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("remove_pool_from_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("change_deposit_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("withdraw_collected_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("withdraw_collected_fee_defifunds_all", rule!(require(defifunds_admin_badge.resource_address())))
-                .default(rule!(allow_all));
+                .method("new_pool_to_whitelist_all", rule!(require(defifunds_admin_badge.resource_address())),AccessRule::DenyAll)
+                .method("remove_pool_from_whitelist_all", rule!(require(defifunds_admin_badge.resource_address())),AccessRule::DenyAll)
+                .method("change_deposit_fee_admin_all", rule!(require(defifunds_admin_badge.resource_address())),AccessRule::DenyAll)
+                .method("withdraw_collected_fee_admin_all", rule!(require(defifunds_admin_badge.resource_address())),AccessRule::DenyAll)
+                .default(rule!(allow_all),AccessRule::DenyAll);
 
             let mut component = Self {
                 funds: Vec::new(),
@@ -85,7 +84,7 @@ blueprint! {
         pub fn new_pool_to_whitelist_all(&mut self, pool_address: ComponentAddress){
             self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
             for &fund1 in self.funds.iter(){
-                let fund: FundComponent=fund1.into();
+                let fund: FundGlobalComponentRef=fund1.into();
                 fund.new_pool_to_whitelist(pool_address);
             }
         }
@@ -93,7 +92,7 @@ blueprint! {
         pub fn remove_pool_from_whitelist_all(&mut self, pool_address: ComponentAddress){
             self.whitelisted_pool_addresses.remove(&pool_address);
             for &fund1 in self.funds.iter(){
-                let fund: FundComponent=fund1.into();
+                let fund: FundGlobalComponentRef=fund1.into();
                 fund.remove_pool_from_whitelist(pool_address)
             }
         }
@@ -102,7 +101,7 @@ blueprint! {
             assert!(new_fee >= dec!(0) && new_fee <= dec!(5),"Fee need to be in range of 0% to 5%.");
             self.defifunds_deposit_fee=new_fee;
             for &fund1 in self.funds.iter(){
-                let fund: FundComponent=fund1.into();
+                let fund: FundGlobalComponentRef=fund1.into();
                 fund.change_deposit_fee_admin(new_fee);
             }
         }
@@ -110,7 +109,7 @@ blueprint! {
         pub fn withdraw_collected_fee_admin_all(&mut self) -> Vec<Bucket>{
             let mut tokens= Vec::new();
             for &fund1 in self.funds.iter(){
-                let fund: FundComponent=fund1.into();
+                let fund: FundGlobalComponentRef=fund1.into();
                 tokens.push(fund.withdraw_collected_fee_admin());
             }
             tokens

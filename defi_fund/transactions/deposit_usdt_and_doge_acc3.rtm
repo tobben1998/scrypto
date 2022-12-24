@@ -8,7 +8,7 @@ CALL_METHOD ComponentAddress("${acc3}") "withdraw_by_amount" Decimal("40") Resou
 TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("40") ResourceAddress("${usdt}") Bucket("usdt");
 
 #put tokens into fund
-CALL_METHOD ComponentAddress("${fund}") "deposit_tokens_to_fund" List<Bucket>(Bucket("doge"), Bucket("usdt"));
+CALL_METHOD ComponentAddress("${fund}") "deposit_tokens_to_fund" Array<Bucket>(Bucket("doge"), Bucket("usdt"));
 
 #return resources from worktop back to acc
 CALL_METHOD ComponentAddress("${acc3}") "deposit_batch" Expression("ENTIRE_WORKTOP");

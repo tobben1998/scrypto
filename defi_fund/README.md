@@ -58,10 +58,13 @@ resim transfer 100000 $doge $acc3
 resim transfer 100000 $doge $acc4
 ```
 
-Publish the package:
+Publish the package. Account 1 can edit the pkg metadata.
 
 ```sh
-pkg=$(resim publish ".")
+pkg_badge=$(resim new-simple-badge)
+export pkg_badge=$(echo "$pkg_badge" | sed -nr "s/.*NFAddress: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+
+pkg=$(resim publish "." --owner-badge $pkg_badge)
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
 ```
 
@@ -86,12 +89,12 @@ Add some trading pools to the whitelist and set a fee for all deposits that go t
 
 ```sh
 resim set-current-epoch 0
-resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds new_pool_to_whitelist $pool_eth_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds new_pool_to_whitelist $pool_doge_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist_all $pool_eth_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist_all $pool_doge_usdt --proofs 1,$defifunds_admin_badge
 resim set-current-epoch 300
 
-resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds change_deposit_fee_admin_all 1 --proofs 1,$defifunds_admin_badge
 ```
 
 You have now created the essential components and are ready to go through a simple example to show how it works.
@@ -103,12 +106,10 @@ Start by createting a new fund using account 2, and set a deposit fee that goes 
 ```sh
 resim set-default-account $acc2 $pk2
 
-fund=$(resim call-method $defifunds new_fund "DegenFund" 100,$usdt 100)
+fund=$(resim call-method $defifunds new_fund "DegenFund" 100,$usdt 1 100)
 export fund_manager_badge=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
 export share_token=$(echo "$fund" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 export fund=$(echo "$fund" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p")
-
-resim call-method $fund change_deposit_fee_fund_manager 1 --proofs 1,$fund_manager_badge
 
 ```
 
@@ -166,7 +167,7 @@ Fund managers and defifund_admin can withdraw the fee collected whenever they wa
 
 ```sh
 resim set-default-account $acc1 $pk1
-resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds withdraw_collected_fee_admin_all --proofs 1,$defifunds_admin_badge
 resim show $acc1
 
 resim set-default-account $acc2 $pk2
@@ -181,11 +182,10 @@ You now have a simple understanding of how defifunds work. You can for example e
 Method calls for the defifunds_admin
 
 ```sh
-resim call-method $defifunds new_pool_to_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds remove_pool_from_whitelist $pool_btc_usdt --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds change_deposit_fee_defifunds 1 --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds withdraw_collected_fee_defifunds --proofs 1,$defifunds_admin_badge
-resim call-method $defifunds withdraw_collected_fee_defifunds_all --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds new_pool_to_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds remove_pool_from_whitelist_all $pool_btc_usdt --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds change_deposit_fee_admin_all 1 --proofs 1,$defifunds_admin_badge
+resim call-method $defifunds withdraw_collected_fee_admin_all --proofs 1,$defifunds_admin_badge
 ```
 
 Method calls for the fund manager
