@@ -13,7 +13,7 @@ blueprint! {
         deposit_fee_fund_manager: Decimal, 
         fees_fund_manager_vault: Vault,
 
-        whitelisted_pool_addresses: HashMap<ComponentAddress, u64>, //whitelist valid from epoch <u64>
+        whitelisted_pool_addresses: HashMap<ComponentAddress, U64>, //whitelist valid from epoch <U64>
         admin_badge: ResourceAddress,
         deposit_fee_admin: Decimal,
         fees_admin_vault: Vault,
@@ -30,7 +30,7 @@ blueprint! {
             deposit_fee_fund_manager: Decimal, 
             initial_supply_share_tokens: Decimal,
 
-            whitelisted_pool_addresses: HashMap<ComponentAddress, u64>,
+            whitelisted_pool_addresses: HashMap<ComponentAddress, U64>,
             admin_badge: ResourceAddress,
             deposit_fee_admin: Decimal
 
@@ -214,7 +214,7 @@ blueprint! {
             //checks if the pool is whitelisted
             let mut whitelisted=false;
             for (&address, &epoch) in self.whitelisted_pool_addresses.iter(){
-                if address == pool_address && epoch <= Runtime::current_epoch(){
+                if address == pool_address && epoch <= Runtime::current_epoch().into(){
                     whitelisted=true;
                 }
             }
@@ -236,7 +236,7 @@ blueprint! {
         ///////////////////////
         
         pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
-            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
+            self.whitelisted_pool_addresses.insert(pool_address, (Runtime::current_epoch()+300).into()); //will only be valid after 300 epochs 7days ish.
         }
 
         pub fn remove_pool_from_whitelist(&mut self, pool_address: ComponentAddress){

@@ -7,7 +7,7 @@ blueprint! {
     struct Defifunds {
         funds: Vec<ComponentAddress>, //all funds in the dapp
         defifunds_admin_badge: ResourceAddress,
-        whitelisted_pool_addresses: HashMap<ComponentAddress, u64>, //whitelist valid from epoch <u64>
+        whitelisted_pool_addresses: HashMap<ComponentAddress, U64>, //whitelist valid from epoch <u64>
         defifunds_deposit_fee: Decimal
     }
 
@@ -71,7 +71,7 @@ blueprint! {
             self.defifunds_deposit_fee
         }
 
-        pub fn get_whitelisted_pool_addresses(&mut self) -> HashMap<ComponentAddress, u64>{
+        pub fn get_whitelisted_pool_addresses(&mut self) -> HashMap<ComponentAddress, U64>{
             self.whitelisted_pool_addresses.clone()
         }
 
@@ -82,7 +82,7 @@ blueprint! {
         /////////////////////////////////
 
         pub fn new_pool_to_whitelist_all(&mut self, pool_address: ComponentAddress){
-            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
+            self.whitelisted_pool_addresses.insert(pool_address, (Runtime::current_epoch()+300).into()); //will only be valid after 300 epochs 7days ish.
             for &fund1 in self.funds.iter(){
                 let fund: FundGlobalComponentRef=fund1.into();
                 fund.new_pool_to_whitelist(pool_address);
