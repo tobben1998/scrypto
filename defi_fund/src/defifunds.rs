@@ -9,7 +9,9 @@ blueprint! {
         defifunds_admin_badge: ResourceAddress,
         whitelisted_pool_addresses: HashMap<ComponentAddress, u64>, //whitelist valid from epoch <u64>
         defifunds_deposit_fee: Decimal,
-        fee_vaults: HashMap<ResourceAddress, Vault>
+        fee_vaults: HashMap<ResourceAddress, Vault>,
+        set_component_badge: ResourceAddress, //used for the work around
+        component_address: Option<ComponentAddress> //component address of self. A work around for 0.7.0
     }
 
     impl Defifunds {
@@ -22,26 +24,46 @@ blueprint! {
                 .metadata("desciption", "Badge used for the admin stuff")
                 .initial_supply(1);
 
+            //used for workaround for 0.7.0 to get i selves component address
+            let set_component_badge: Bucket = ResourceBuilder::new_fungible()
+                .divisibility(DIVISIBILITY_NONE)
+                .metadata("name", "set component badge")
+                .metadata("desciption", "used in 0.7.0 because not possible to get it selves component address")
+                .burnable(rule!(allow_all), AccessRule::DenyAll)
+                .initial_supply(1);
+
             let access_rules = AccessRules::new()
-                .method("new_pool_to_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("remove_pool_from_whitelist", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("change_deposit_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("withdraw_collected_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())))
-                .method("withdraw_collected_fee_defifunds_all", rule!(require(defifunds_admin_badge.resource_address())))
-                .default(rule!(allow_all));
+                .method("new_pool_to_whitelist", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("remove_pool_from_whitelist", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("change_deposit_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("withdraw_collected_fee_defifunds", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .method("withdraw_collected_fee_defifunds_all", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
+                .default(rule!(allow_all), AccessRule::DenyAll);
 
             let mut component = Self {
                 funds: Vec::new(),
                 defifunds_admin_badge: defifunds_admin_badge.resource_address(),
                 whitelisted_pool_addresses: HashMap::new(),
                 defifunds_deposit_fee: dec!(1),
-                fee_vaults: HashMap::new()
+                fee_vaults: HashMap::new(),
+                set_component_badge: set_component_badge.resource_address(),
+                component_address: None
             }
             .instantiate();
             component.add_access_check(access_rules);
+            let globalized_component=component.globalize();
+            let defifunds_component: DefifundsGlobalComponentRef = globalized_component.into();
+            defifunds_component.set_address(globalized_component, set_component_badge); //workaround to get component address.
 
-            (component.globalize(), defifunds_admin_badge)
+            (globalized_component, defifunds_admin_badge)
                 
+        }
+
+        //helper method for 0.7.0 to set component address. Can only be used when instatiating, because no one get the badge.
+        pub fn set_address(&mut self, address: ComponentAddress, badge: Bucket){
+            assert_eq!(badge.resource_address(), self.set_component_badge, "The badge is only accasable when instantiating a new component, so no need to call this method.");
+            self.component_address = Some(address);
+            badge.burn();
         }
 
         //fund make use of this method to deposit the fee to the correct vault
@@ -67,7 +89,7 @@ blueprint! {
                 fund_name,
                 token,
                 initial_supply_share_tokens,
-                Runtime::actor().as_component().0 //component address of Defifunds
+                self.component_address.unwrap() //component address of Defifunds
             )
             .into();
             self.funds.push(fund.into());
@@ -94,7 +116,7 @@ blueprint! {
         ////////////////////////////////
 
         pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
-            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch()+300); //will only be valid after 300 epochs 7days ish.
+            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch());//+300); //will only be valid after 300 epochs 7days ish. changed since set-current-epoch is not working in 0.7.0
         }
 
         pub fn remove_pool_from_whitelist(&mut self, pool_address: ComponentAddress){
