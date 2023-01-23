@@ -1,5 +1,12 @@
+//beakerfi addresses
+//component_tdx_b_1qtmzcwxvcvv7audnqgpchnxqphfmhvvujefwfs3a6auqyps8e3
+
+
+
+
 use scrypto::prelude::*;
 use crate::fund::*;
+
 
 blueprint! {
 
@@ -11,12 +18,14 @@ blueprint! {
         defifunds_deposit_fee: Decimal,
         fee_vaults: HashMap<ResourceAddress, Vault>,
         set_component_badge: ResourceAddress, //used for the work around
-        component_address: Option<ComponentAddress> //component address of self. A work around for 0.7.0
+        component_address: Option<ComponentAddress>, //component address of self. A work around for 0.7.0
+        price_oracle: Option<ComponentAddress>,
+        beakerfi: ComponentAddress
     }
 
     impl Defifunds {
 
-        pub fn instantiate_defifunds() -> (ComponentAddress, Bucket) {
+        pub fn instantiate_defifunds(beakerfi: ComponentAddress) -> (ComponentAddress, Bucket) {
 
             let defifunds_admin_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
@@ -24,7 +33,7 @@ blueprint! {
                 .metadata("desciption", "Badge used for the admin stuff")
                 .initial_supply(1);
 
-            //used for workaround for 0.7.0 to get i selves component address
+            //used for workaround for 0.7.0 to get it selves component address
             let set_component_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "set component badge")
@@ -47,7 +56,9 @@ blueprint! {
                 defifunds_deposit_fee: dec!(1),
                 fee_vaults: HashMap::new(),
                 set_component_badge: set_component_badge.resource_address(),
-                component_address: None
+                component_address: None,
+                price_oracle:None,
+                beakerfi: beakerfi
             }
             .instantiate();
             component.add_access_check(access_rules);
@@ -64,6 +75,10 @@ blueprint! {
             assert_eq!(badge.resource_address(), self.set_component_badge, "The badge is only accasable when instantiating a new component, so no need to call this method.");
             self.component_address = Some(address);
             badge.burn();
+        }
+
+        pub fn set_oracle_address(&mut self, address: ComponentAddress){
+            self.price_oracle = Some(address);
         }
 
         //fund make use of this method to deposit the fee to the correct vault
@@ -99,6 +114,10 @@ blueprint! {
 
         pub fn get_fund_addresses(&mut self) -> Vec<ComponentAddress>{
             self.funds.clone()
+        }
+
+        pub fn get_dex_address(&mut self) -> ComponentAddress{
+            self.beakerfi.clone()
         }
 
         pub fn get_defifunds_deposit_fee(&mut self) -> Decimal{
