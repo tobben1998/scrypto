@@ -1,0 +1,39 @@
+
+#instantiate defifunds
+CALL_FUNCTION PackageAddress("package_tdx_b_1qyfmfmjk4tmcvqa3svufmn9qhy4378hhuny08zv7zpds0ju7d4") "Defifunds" "instantiate_defifunds" ComponentAddress("component_tdx_b_1qtmzcwxvcvv7audnqgpchnxqphfmhvvujefwfs3a6auqyps8e3");
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "deposit_batch" Expression("ENTIRE_WORKTOP");
+
+#new fund
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "withdraw_by_amount" Decimal("100") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("100") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x") Bucket("bucket1");
+CALL_METHOD ComponentAddress("component_tdx_b_1qf3t73aaudcnz47dugf5ruzmu7pu8zm829fxtq5dmheqjkzm3a") "new_fund" "DegenFund2" Bucket("bucket1") Decimal("100");
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "deposit_batch" Expression("ENTIRE_WORKTOP");
+
+#swap tokens for token (working only if only providing one token beacuse of fee limit exceeded. swap is uning it)
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "withdraw_by_amount" Decimal("1") ResourceAddress("resource_tdx_b_1qrms49az5md2qh9qsnefecg6hccwdgyj7ewr692cdepsu60xrd");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("1") ResourceAddress("resource_tdx_b_1qrms49az5md2qh9qsnefecg6hccwdgyj7ewr692cdepsu60xrd") Bucket("eth");
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "withdraw_by_amount" Decimal("20") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("20") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x") Bucket("xrd");
+CALL_METHOD ComponentAddress("component_tdx_b_1qg70d9hq4teayldkqe4aqzqd92sm8jjawdqksfdyhcgsjpgrdg") "swap_tokens_for_token" Array<Bucket>(Bucket("xrd"), Bucket("eth")) ResourceAddress("resource_tdx_b_1qpu0ks52lvuq0qdedcpx6yp4gmwer8ys8jkdlmrkkaxq6x54gd") ;
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "deposit_batch" Expression("ENTIRE_WORKTOP");
+
+#swap token for tokens (working only if only providing one token beacuse of fee limit exceeded. swap is using it)
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "withdraw_by_amount" Decimal("100") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("100") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x") Bucket("xrd");
+CALL_METHOD ComponentAddress("component_tdx_b_1qg70d9hq4teayldkqe4aqzqd92sm8jjawdqksfdyhcgsjpgrdg") "swap_token_for_tokens" Bucket("xrd") Array<Tuple>(Tuple(ResourceAddress("resource_tdx_b_1qrms49az5md2qh9qsnefecg6hccwdgyj7ewr692cdepsu60xrd"), Decimal("0.5")), Tuple(ResourceAddress("resource_tdx_b_1qrms49az5md2qh9qsnefecg6hccwdgyj7ewr692cdepsu60xrd"), Decimal("0.5")));
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "deposit_batch" Expression("ENTIRE_WORKTOP");
+
+
+#chnage fee fundmamanger
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "create_proof_by_amount" Decimal("1") ResourceAddress("resource_tdx_b_1qpk8cky58xj3zkgmvhznxrznvhj7xqjtatc832hffekqgw4lnh");
+CALL_METHOD ComponentAddress("component_tdx_b_1qg70d9hq4teayldkqe4aqzqd92sm8jjawdqksfdyhcgsjpgrdg") "change_deposit_fee_fund_manager" Decimal("1");
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "deposit_batch" Expression("ENTIRE_WORKTOP");
+
+#swap two tokens using beakerfi (fee exceeds limit)
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "withdraw_by_amount" Decimal("1") ResourceAddress("resource_tdx_b_1qp8d7m9q3w0kcys966apcns2dmpmwsh8kswa64mxngqsun0pdu");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("1") ResourceAddress("resource_tdx_b_1qp8d7m9q3w0kcys966apcns2dmpmwsh8kswa64mxngqsun0pdu") Bucket("btc");
+CALL_METHOD ComponentAddress("component_tdx_b_1qtmzcwxvcvv7audnqgpchnxqphfmhvvujefwfs3a6auqyps8e3") "swap" Bucket("btc") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x") Decimal("9999999999999999999999999999999999999999999999999999999999") Decimal("1");
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "withdraw_by_amount" Decimal("1") ResourceAddress("resource_tdx_b_1qrms49az5md2qh9qsnefecg6hccwdgyj7ewr692cdepsu60xrd");
+TAKE_FROM_WORKTOP_BY_AMOUNT Decimal("1") ResourceAddress("resource_tdx_b_1qrms49az5md2qh9qsnefecg6hccwdgyj7ewr692cdepsu60xrd") Bucket("eth");
+CALL_METHOD ComponentAddress("component_tdx_b_1qtmzcwxvcvv7audnqgpchnxqphfmhvvujefwfs3a6auqyps8e3") "swap" Bucket("eth") ResourceAddress("resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x") Decimal("9999999999999999999999999999999999999999999999999999999999") Decimal("1");
+CALL_METHOD ComponentAddress("account_tdx_b_1ql67hpwqqj7pqhn026hjxrted5jlcwhmqkduc2d5khws9ap7zx") "deposit_batch" Expression("ENTIRE_WORKTOP");
