@@ -99,12 +99,22 @@ blueprint! {
         ///methods for everyone///
         //////////////////////////
         
-        pub fn new_fund(&mut self, fund_name: String, token: Bucket, initial_supply_share_tokens: Decimal) -> (Bucket, Bucket){
+        pub fn new_fund(&mut self, 
+            fund_name: String, 
+            token: Bucket, 
+            initial_supply_share_tokens: Decimal, 
+            short_description: String,
+            image_link: String,
+            website_link: String
+        ) -> (Bucket, Bucket){
             let (fund, fund_manager_badge, share_tokens)=FundComponent::instantiate_fund(
                 fund_name,
                 token,
                 initial_supply_share_tokens,
-                self.component_address.unwrap() //component address of Defifunds
+                self.component_address.unwrap(), //component address of Defifunds
+                short_description,
+                image_link,
+                website_link
             )
             .into();
             self.funds.push(fund.into());

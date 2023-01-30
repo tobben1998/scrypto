@@ -28,7 +28,10 @@ blueprint! {
 
 
     struct Fund {
-        fund_name: String, 
+        fund_name: String,
+        short_description: String,
+        image_link: String,
+        website_link: String,
         vaults: HashMap<ResourceAddress, Vault>, //where all the tokens in the fund are stored
         fund_manager_badge: ResourceAddress, 
         internal_fund_badge: Vault,
@@ -44,7 +47,11 @@ blueprint! {
             fund_name: String,
             token: Bucket, 
             initial_supply_share_tokens: Decimal,
-            defifunds: ComponentAddress
+            defifunds: ComponentAddress,
+            short_description: String,
+            image_link: String,
+            website_link: String
+
         ) -> (ComponentAddress, Bucket, Bucket) {
 
             let fund_manager_badge: Bucket = ResourceBuilder::new_fungible()
@@ -74,6 +81,9 @@ blueprint! {
                 .method("change_deposit_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
                 .method("withdraw_collected_fee_fund_manager", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
                 .method("trade_beakerfi", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
+                .method("change_short_description", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
+                .method("change_image_link", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
+                .method("change_website_link", rule!(require(fund_manager_badge.resource_address())), AccessRule::DenyAll)
                 .default(rule!(allow_all), AccessRule::DenyAll);
 
                 
@@ -85,6 +95,9 @@ blueprint! {
 
             let mut component = Self {
                 fund_name: fund_name,
+                short_description: short_description,
+                image_link: image_link,
+                website_link: website_link,
                 fund_manager_badge: fund_manager_badge.resource_address(),
                 internal_fund_badge: Vault::with_bucket(internal_fund_badge),
                 vaults: vaults,
@@ -306,6 +319,17 @@ blueprint! {
 
         }
 
+        pub fn change_short_description(&mut self, short_description: String){
+            self.short_description=short_description;
+        }
+
+        pub fn change_image_link(&mut self, image_link: String){
+            self.image_link=image_link;
+        }
+
+        pub fn change_website_link(&mut self, website_link: String){
+            self.website_link=website_link;
+        }
 
     }
 }
