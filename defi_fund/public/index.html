@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+  <title>Betanet Wallet SDK Example</title>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <script type="module" src="/dist/index.js"></script>
+  <div class="connectBtn">
+    <radix-connect-button />
+  </div>
+  <br><br>
+  <div class="container">
+    <p>Account Address:
+    <pre id="accountAddress"></pre>
+    </p>
+  </div>
+  <br><br>
+
+  <p>pkg = package_tdx_b_1q84ymxvegc76nlkkw06ktdqltmv5lpnxaesej9asrtnquz8uu7<br>
+    beakerfi addresses =
+    component_tdx_b_1qtmzcwxvcvv7audnqgpchnxqphfmhvvujefwfs3a6auqyps8e3<br>
+    DefiFundsComponentAddress = component_tdx_b_1qg8dfmej4trz4tw9h5u67phkvguxhkn50rgyttqjq7yschtwtp <br>
+    DefiFundsAdminBadge = resource_tdx_b_1qzsp6pdfvljg4sfjluhn75z370qfap6snc8gx42k8nwqk68jz2
+  
+  </p>
+  <h1>DefiFunds</h1>
+
+
+  <h3>Instantiate DefiFunds</h3>
+
+  <input type="text" placeholder="Package address" id="packageAddress" />
+  <input type="text" placeholder="Dex Component Address" id="dexComponentAddress">
+  <p><button id="instantiateDefiFunds">Instantiate DefiFunds</button></p>
+  <div class="container">
+    <p>DefiFunds Component Address: <span id="DefiFundsComponentAddress"></span></p>
+    <p>DefiFunds Admin Badge: <span id="DefiFundsAdminBadge"></span></p>
+  </div>
+  <br><br><br><br><br>
+
+
+  <h2>Methods for everyone</h2>
+  <h3>New Fund</h3>
+  <input type="text" placeholder="Fund name" id="inpNewFundName">
+  <input type="number" placeholder="initial suppyly share tokens (you will depost the same xrd amount as you set as inital supply)" id="inpNewFundInitialSupply" min="0" max="10000000000">
+  <input type="text" placeholder="description" id="inpNewFundDescription">
+  <input type="text" placeholder="imagelink" id="inpNewFundImageLink">
+  <input type="text" placeholder="websitelink" id="inpNewFundWebsiteLink">
+  <p><button id="btnNewFund">Create Fund</button></p>
+  <div class="container">
+    <p>Status on transaction: <span id="StatusNewFund"></span></p>
+    <p>Fund Component Address: <span id="FundComponentAddress"></span></p>
+    <p>Fund Manager Badge: <span id="FundManagerBadge"></span></p>
+    <p>Share Token Address: <span id="ShareTokenAddress"></span></p>
+  </div>
+  <br><br><br><br><br>
+
+
+  <h2>Methods for DefifundsAdmin</h2>
+  <h3>New pool to whitelist</h3>
+  <input type="text" placeholder="pool" id="inpNewPoolAddress">
+  <p><button id="btnNewPoolToWhitelist">Add pool</button></p>
+  <div class="container">
+    <p>Status on transaction: <span id="StatusNewPoolToWhitelist"></span></p>
+  </div>
+  <br><br><br><br><br>
+
+  <h3>Remove pool from whitelist</h3>
+  <input type="text" placeholder="pool" id="inpRemovePoolAddress">
+  <p><button id="btnRemovePoolFromWhitelist">Remove pool</button></p>
+  <div class="container">
+    <p>Status on transaction: <span id="StatusRemovePoolFromWhitelist"></span></p>
+  </div>
+  <br><br><br><br><br>
+
+  <h3>Change deposit fee defifunds</h3>
+  <input type="text" placeholder="new fee" id="inpChangeDepositFeeDefifunds">
+  <p><button id="btnChangeDepositFeeDefifunds">Change deposit feee</button></p>
+  <div class="container">
+    <p>Status on transaction: <span id="StatusChangeDepositFeeDefifunds"></span></p>
+  </div>
+  <br><br><br><br><br>
+
+  <h3>Withdraw collected fee defifunds</h3>
+  <input type="text" placeholder="address" id="inpWithdrawCollectedFeeDefifunds">
+  <p><button id="btnWithdrawCollectedFeeDefifunds">Withdraw</button></p>
+  <div class="container">
+    <p>Status on transaction: <span id="StatusWithdrawCollectedFeeDefifunds"></span></p>
+  </div>
+  <br><br><br><br><br>
+
+  <h3>Withdraw collected fee defifunds all</h3>
+  <p><button id="btnWithdrawCollectedFeeDefifundsAll">Withdraw</button></p>
+  <div class="container">
+    <p>Status on transaction: <span id="StatusWithdrawCollectedFeeDefifundsAll"></span></p>
+  </div>
+  <br><br><br><br><br>
+
+</body>
+
+</html>

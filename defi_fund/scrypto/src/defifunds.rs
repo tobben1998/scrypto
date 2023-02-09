@@ -1,6 +1,8 @@
+//pkg address for code 08.02
+//pkg=package_tdx_b_1q84ymxvegc76nlkkw06ktdqltmv5lpnxaesej9asrtnquz8uu7
+
 //beakerfi addresses
 //component_tdx_b_1qtmzcwxvcvv7audnqgpchnxqphfmhvvujefwfs3a6auqyps8e3
-
 
 
 
@@ -12,7 +14,7 @@ blueprint! {
 
 
     struct Defifunds {
-        funds: Vec<ComponentAddress>, //all funds in the dapp
+        funds: Vec<ComponentAddress>, //all funds in the dapp //make this vec<componentaddress, fundmanager badge resource address> to easier see who controls the fund?. Thinking of frontend Where you manage your fund.
         defifunds_admin_badge: ResourceAddress,
         whitelisted_pool_addresses: HashMap<ComponentAddress, u64>, //whitelist valid from epoch <u64>
         defifunds_deposit_fee: Decimal,

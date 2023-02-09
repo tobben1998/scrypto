@@ -65,3 +65,5 @@ fee paied 0.79
 test two swaps
 5709102bb9f5b5a1539793d10beab46c1692bc3720334d6fc857ad45110e440e
 fee åaied 0.99
+
+Det er en 1xrd limit fee. Radix vil fikse dette etterhvert, så jeg kan ikke gjøre noe med det selv. Jeg er ganske sikker på at min kode er riktig.

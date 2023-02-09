@@ -35,6 +35,7 @@ blueprint! {
         vaults: HashMap<ResourceAddress, Vault>, //where all the tokens in the fund are stored
         fund_manager_badge: ResourceAddress, 
         internal_fund_badge: Vault,
+        share_token: ResourceAddress,
         total_share_tokens: Decimal,
         fees_fund_manager_vault: Vault,
         deposit_fee_fund_manager: Decimal,
@@ -102,6 +103,7 @@ blueprint! {
                 internal_fund_badge: Vault::with_bucket(internal_fund_badge),
                 vaults: vaults,
                 total_share_tokens: initial_supply_share_tokens,
+                share_token: share_tokens.resource_address(),
                 fees_fund_manager_vault: Vault::new(share_tokens.resource_address()),
                 deposit_fee_fund_manager: dec!(0),
                 defifunds: defifunds
