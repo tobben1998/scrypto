@@ -57,22 +57,22 @@ blueprint! {
 
             let fund_manager_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
-                .metadata("name", "Fund manager badge")
-                .metadata("desciption", "Badge used for managing the fund.")
+                .metadata("name", format!("{} manager badge", fund_name))
+                .metadata("description", format!("Badge used for managing {}.", fund_name))
                 .initial_supply(1);
 
 
             let internal_fund_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "Internal fund badge")
-                .metadata("desciption", "Badge that has the auhority to mint and burn share tokens.")
+                .metadata("description", "Badge that has the auhority to mint and burn share tokens.")
                 .initial_supply(1);
 
 
             let share_tokens: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_MAXIMUM)
-                .metadata("name", "share tokens")
-                .metadata("description", "Tokens used to show what share of the fund you have")
+                .metadata("name", format!("{} share tokens", fund_name))
+                .metadata("description", format!("Tokens used to show what share of {} you have", fund_name))
                 .mintable(rule!(require(internal_fund_badge.resource_address())), AccessRule::DenyAll)
                 .burnable(rule!(require(internal_fund_badge.resource_address())), AccessRule::DenyAll)
                 .initial_supply(initial_supply_share_tokens);

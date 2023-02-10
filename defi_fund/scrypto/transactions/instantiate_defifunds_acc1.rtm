@@ -2,7 +2,7 @@
 CALL_METHOD ComponentAddress("${acc1}") "lock_fee" Decimal("100");
 
 #call instatiate fund function
-CALL_FUNCTION PackageAddress("${pkg}") "Defifunds" "instantiate_defifunds" ComponentAddress("${acc1}") "a" "b" "c"; #skal være component address til beakerfi here
+CALL_FUNCTION PackageAddress("${pkg}") "Defifunds" "instantiate_defifunds" ComponentAddress("${acc1}"); #skal være component address til beakerfi here
 
 #return resources from worktop back to acc
 CALL_METHOD ComponentAddress("${acc1}") "deposit_batch" Expression("ENTIRE_WORKTOP");

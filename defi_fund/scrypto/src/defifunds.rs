@@ -14,7 +14,7 @@ blueprint! {
 
 
     struct Defifunds {
-        funds: Vec<ComponentAddress>, //all funds in the dapp //make this vec<componentaddress, fundmanager badge resource address> to easier see who controls the fund?. Thinking of frontend Where you manage your fund.
+        funds: Vec<(ComponentAddress, ResourceAddress, ResourceAddress)>, //all funds in the dapp (<fund, fundmanagerbadge, sharetoken>)
         defifunds_admin_badge: ResourceAddress,
         whitelisted_pool_addresses: HashMap<ComponentAddress, u64>, //whitelist valid from epoch <u64>
         defifunds_deposit_fee: Decimal,
@@ -32,14 +32,14 @@ blueprint! {
             let defifunds_admin_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "defifunds admin badge")
-                .metadata("desciption", "Badge used for the admin stuff")
+                .metadata("description", "Badge used for admin stuff")
                 .initial_supply(1);
 
             //used for workaround for 0.7.0 to get it selves component address
             let set_component_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "set component badge")
-                .metadata("desciption", "used in 0.7.0 because not possible to get it selves component address")
+                .metadata("description", "used in 0.7.0 because not possible to get it selves component address")
                 .burnable(rule!(allow_all), AccessRule::DenyAll)
                 .initial_supply(1);
 
@@ -119,12 +119,12 @@ blueprint! {
                 website_link
             )
             .into();
-            self.funds.push(fund.into());
+            self.funds.push((fund.into(),fund_manager_badge.resource_address(),share_tokens.resource_address()));
 
             (fund_manager_badge, share_tokens)
         }
 
-        pub fn get_fund_addresses(&mut self) -> Vec<ComponentAddress>{
+        pub fn get_funds(&mut self) -> Vec<(ComponentAddress, ResourceAddress, ResourceAddress)>{
             self.funds.clone()
         }
 
