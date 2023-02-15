@@ -8,90 +8,25 @@ import {
   Expression,
   ResourceAddress,
 } from "@radixdlt/connect-button";
-
-// Configure the connect button
-const connectBtn = configure({
-  dAppId: "DefiFunds",
-  networkId: 0x0b,
-  onConnect: ({ setState, getWalletData }) => {
-    getWalletData(
-      requestBuilder(requestItem.oneTimeAccounts.withoutProofOfOwnership(1))
-    ).map(({ oneTimeAccounts }) => {
-      setState({ connected: true, loading: false });
-      document.getElementById("accountAddress").innerText =
-        oneTimeAccounts[0].address;
-      accountAddress = oneTimeAccounts[0].address;
-    });
-  },
-  onDisconnect: ({ setState }) => {
-    setState({ connected: false });
-  },
-});
-console.log("connectBtn: ", connectBtn);
-
-// There are four classes exported in the Gateway-SDK These serve as a thin wrapper around the gateway API
-// API docs are available @ https://betanet-gateway.redoc.ly/
-import {
-  TransactionApi,
-  StateApi,
-  StatusApi,
-  StreamApi,
-} from "@radixdlt/babylon-gateway-api-sdk";
-
-// Instantiate Gateway SDK
-const transactionApi = new TransactionApi();
-const stateApi = new StateApi();
-const statusApi = new StatusApi();
-const streamApi = new StreamApi();
+import axios from "axios";
+import { requestPoolInfo, calculatePrice } from "./helperFunctions.js";
+import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
 // Global states
-let accountAddress; //User account address
 let DefiFundsComponentAddress =
-  "component_tdx_b_1qg8dfmej4trz4tw9h5u67phkvguxhkn50rgyttqjq7yschtwtp";
+  "component_tdx_b_1qg2x3lq8atw5ng4d4uqpx4jckxxc0wyfeaks2ql426wscm6ywf";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qzsp6pdfvljg4sfjluhn75z370qfap6snc8gx42k8nwqk68jz2";
+  "resource_tdx_b_1qpmqp3m5jdpwvplv7zqxekg99dr5mk3cxxh9r22w62vsqasc5c";
 const xrdAddress =
   "resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x";
 
-//functions to simplyfy code:
-async function sendManifest(manifest) {
-  // Send manifest to extension for signing
-  const result = await connectBtn.sendTransaction({
-    transactionManifest: manifest,
-    version: 1,
-  });
-  if (result.isErr()) throw result.error;
-  console.log("Result: ", result.value);
+let FundComponentAddress;
+let FundManagerBadge;
+let ShareTokenAddress;
 
-  // Fetch the transaction status from the Gateway API
-  let status = await transactionApi.transactionStatus({
-    transactionStatusRequest: {
-      intent_hash_hex: result.value.transactionIntentHash,
-    },
-  });
-  console.log(" TransactionApi transaction/status:", status);
-
-  // fetch component address from gateway api and set componentAddress variable
-  let commitReceipt = await transactionApi.transactionCommittedDetails({
-    transactionCommittedDetailsRequest: {
-      transaction_identifier: {
-        type: "intent_hash",
-        value_hex: result.value.transactionIntentHash,
-      },
-    },
-  });
-  console.log("Committed Details Receipt", commitReceipt);
-
-  return { status, commitReceipt };
-}
-
-function showReceipt(commitReceipt, fieldId) {
-  document.getElementById(fieldId).innerText = JSON.stringify(
-    commitReceipt.details.receipt,
-    null,
-    2
-  );
-}
+// ************************************
+// ************ DefiFunds *************
+// ************************************
 
 // ************ Instantiate component and fetch component and resource addresses *************
 document.getElementById("instantiateDefiFunds").onclick = async function () {
@@ -150,11 +85,11 @@ document.getElementById("btnNewFund").onclick = async function () {
 
   document.getElementById("StatusNewFund").innerText =
     commitReceipt.details.receipt.status;
-  document.getElementById("FundComponentAddress").innerText =
+  document.getElementById("FundComponentAddressNewFund").innerText =
     commitReceipt.details.referenced_global_entities[1];
-  document.getElementById("FundManagerBadge").innerText =
+  document.getElementById("FundManagerBadgeNewFund").innerText =
     commitReceipt.details.referenced_global_entities[2];
-  document.getElementById("ShareTokenAddress").innerText =
+  document.getElementById("ShareTokenAddressNewFund").innerText =
     commitReceipt.details.referenced_global_entities[4];
   //showReceipt(commitReceipt, "rcptNewFund");
 };
@@ -269,3 +204,195 @@ document.getElementById("btnWithdrawCollectedFeeDefifundsAll").onclick =
       "StatusWithdrawCollectedFeeDefifundsAll"
     ).innerText = commitReceipt.details.receipt.status;
   };
+
+// ************************************
+// ************ Fund ******************
+// ************************************
+
+// ************ Get Fund Addresses *************
+document.getElementById("btnGetFundAddresses").onclick = async function () {
+  axios
+    .post("https://betanet.radixdlt.com/entity/details", {
+      address: DefiFundsComponentAddress,
+    })
+    .then((response) => {
+      let vector = response.data.details.state.data_json[0];
+      document.getElementById("rcptFunds").innerText = vector
+        .map((arr) => arr.join("\n"))
+        .join("\n\n");
+    });
+};
+
+// ************ Set Fund Address *************
+document.getElementById("btnSetFundAddress").onclick = async function () {
+  FundComponentAddress = document.getElementById("inpSetFundAddress").value;
+  FundManagerBadge = document.getElementById("inpSetFundManagerBadge").value;
+  ShareTokenAddress = document.getElementById("inpSetShareToken").value;
+};
+
+// ************ Get pool info *************
+document.getElementById("btnGetPoolInfo").onclick = async function () {
+  let selectElement = document.getElementById("selGetPoolInfo");
+  let value = selectElement.options[selectElement.selectedIndex].value;
+  let addresses = value.split(",");
+  let address1 = addresses[0];
+  let address2 = addresses[1];
+  let noe = await requestPoolInfo(address1, address2);
+  console.log(noe);
+  console.log("Price: ", calculatePrice(noe));
+};
+
+// ************ Deposit tokens to fund *************
+document.getElementById("btnDeposit").onclick = async function () {
+  document.getElementById("StatusDeposit").innerText = "not implementet yet";
+};
+
+// ************ Withdraw tokens from fund *************
+document.getElementById("btnWithdraw").onclick = async function () {
+  let amount = document.getElementById("inpWithdrawFromNumber").value;
+  let selectElement = document.getElementById("selWithdrawToAddress");
+  let address = selectElement.options[selectElement.selectedIndex].value;
+  let manifest = new ManifestBuilder()
+    .withdrawFromAccountByAmount(accountAddress, amount, ShareTokenAddress)
+    .takeFromWorktopByAmount(amount, ShareTokenAddress, "sharetoken_bucket")
+    .callMethod(FundComponentAddress, "withdraw_tokens_from_fund", [
+      Bucket("sharetoken_bucket"),
+    ])
+    .callMethod(FundComponentAddress, "swap_tokens_for_token", [
+      Expression("ENTIRE_WORKTOP"), //this is a vec of all buckets on worktop
+      ResourceAddress(address),
+    ])
+    .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
+    .build()
+    .toString();
+
+  console.log("Manifest: ", manifest);
+
+  const { commitReceipt } = await sendManifest(manifest);
+
+  document.getElementById("StatusWithdraw").innerText =
+    commitReceipt.details.receipt.status;
+};
+
+// ************ Withdraw collected fee Fund Manager *************
+document.getElementById("btnWithdrawCollectedFeeFundManager").onclick =
+  async function () {
+    let manifest = new ManifestBuilder()
+      .createProofFromAccountByAmount(accountAddress, 1, FundManagerBadge)
+      .callMethod(
+        FundComponentAddress,
+        "withdraw_collected_fee_fund_manager",
+        []
+      )
+      .callMethod(accountAddress, "deposit_batch", [
+        Expression("ENTIRE_WORKTOP"),
+      ])
+      .build()
+      .toString();
+
+    console.log("Manifest: ", manifest);
+
+    const { commitReceipt } = await sendManifest(manifest);
+
+    document.getElementById("StatusWithdrawCollectedFeeFundManager").innerText =
+      commitReceipt.details.receipt.status;
+  };
+
+// ************ Change Deposit fee fundmanager *************
+document.getElementById("btnChangeDepositFeeFundManager").onclick =
+  async function () {
+    let newFee = document.getElementById("inpChangeDepositFundManager").value;
+    let manifest = new ManifestBuilder()
+      .createProofFromAccountByAmount(accountAddress, 1, FundManagerBadge)
+      .callMethod(FundComponentAddress, "change_deposit_fee_fund_manager", [
+        Decimal(newFee),
+      ])
+      .build()
+      .toString();
+
+    console.log("Manifest: ", manifest);
+
+    const { commitReceipt } = await sendManifest(manifest);
+
+    document.getElementById("StatusChangeDepositFeeFundManager").innerText =
+      commitReceipt.details.receipt.status;
+  };
+
+// ************ Change Description *************
+document.getElementById("btnChangeDescription").onclick = async function () {
+  let text = document.getElementById("inpChangeDescription").value;
+  let manifest = new ManifestBuilder()
+    .createProofFromAccountByAmount(accountAddress, 1, FundManagerBadge)
+    .callMethod(FundComponentAddress, "change_short_description", [`"${text}"`])
+    .build()
+    .toString();
+
+  console.log("Manifest: ", manifest);
+
+  const { commitReceipt } = await sendManifest(manifest);
+
+  document.getElementById("StatusChangeDescription").innerText =
+    commitReceipt.details.receipt.status;
+};
+
+// ************ Change Image *************
+document.getElementById("btnChangeImage").onclick = async function () {
+  let text = document.getElementById("inpChangeImage").value;
+  let manifest = new ManifestBuilder()
+    .createProofFromAccountByAmount(accountAddress, 1, FundManagerBadge)
+    .callMethod(FundComponentAddress, "change_image_link", [`"${text}"`])
+    .build()
+    .toString();
+
+  console.log("Manifest: ", manifest);
+
+  const { commitReceipt } = await sendManifest(manifest);
+
+  document.getElementById("StatusChangeImage").innerText =
+    commitReceipt.details.receipt.status;
+};
+
+// ************ Change Website *************
+document.getElementById("btnChangeWebsite").onclick = async function () {
+  let text = document.getElementById("inpChangeWebsite").value;
+  let manifest = new ManifestBuilder()
+    .createProofFromAccountByAmount(accountAddress, 1, FundManagerBadge)
+    .callMethod(FundComponentAddress, "change_website_link", [`"${text}"`])
+    .build()
+    .toString();
+
+  console.log("Manifest: ", manifest);
+
+  const { commitReceipt } = await sendManifest(manifest);
+
+  document.getElementById("StatusChangeWebsite").innerText =
+    commitReceipt.details.receipt.status;
+};
+
+//remeber to whitelist the pool before testing
+// ************ Trade Beakerfi *************
+document.getElementById("btnTrade").onclick = async function () {
+  let amount = document.getElementById("inpTradeAmount").value;
+  let selectElement = document.getElementById("selTradeFromAddress");
+  let address = selectElement.options[selectElement.selectedIndex].value;
+  let componentAddress = document.getElementById(
+    "inpTradeComponentAddress"
+  ).value;
+  let manifest = new ManifestBuilder()
+    .createProofFromAccountByAmount(accountAddress, 1, FundManagerBadge)
+    .callMethod(FundComponentAddress, "trade_beakerfi", [
+      ResourceAddress(address),
+      Decimal(amount),
+      `ComponentAddress("${componentAddress}")`,
+    ])
+    .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
+    .build()
+    .toString();
+
+  console.log("Manifest: ", manifest);
+
+  const { commitReceipt } = await sendManifest(manifest);
+
+  document.getElementById("StatusTrade").innerText =
+    commitReceipt.details.receipt.status;
+};

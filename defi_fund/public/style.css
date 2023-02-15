@@ -33,6 +33,16 @@ input {
   border: none;
 }
 
+select {
+  padding: 1.33rem;
+  border-radius: 0.33rem;
+  width: 35.5%;
+  margin-bottom: 1.33rem;
+  display: block;
+  border: none;
+  background-color: white;
+}
+
 .container {
   background-color: #f4f5f9;
   color: #414141;
