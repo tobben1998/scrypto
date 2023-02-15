@@ -1,6 +1,7 @@
 use scrypto::prelude::*;
 
-blueprint! {
+#[blueprint]
+mod priceoracle_module{
     struct Priceoracle {
         prices: HashMap<ResourceAddress, Decimal>,
     }

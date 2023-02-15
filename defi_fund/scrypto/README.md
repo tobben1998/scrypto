@@ -18,6 +18,7 @@ Create some new accounts:
 op1=$(resim new-account)
 export pk1=$(echo "$op1" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc1=$(echo "$op1" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
+export b1=$(echo "$op1" | sed -nr "s/NonFungibleGlobalId: ([[:alnum:]_]+)/\1/p")
 op2=$(resim new-account)
 export pk2=$(echo "$op2" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc2=$(echo "$op2" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
@@ -32,7 +33,7 @@ export acc4=$(echo "$op4" | sed -nr "s/Account component address: ([[:alnum:]_]+
 Create some tokens to test with and send some tokens to the different accounts you created:
 
 ```sh
-resim set-default-account $acc1 $pk1
+resim set-default-account $acc1 $pk1 $b1
 
 export xrd=resource_sim1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzqu57yag
 op5=$(resim new-token-fixed --name Bitcoin --symbol BTC 10000000)
@@ -61,11 +62,15 @@ resim transfer 100000 $doge $acc4
 Publish the package. Account 1 can edit the pkg metadata.
 
 ```sh
-pkg_badge=$(resim new-simple-badge)
-export pkg_badge=$(echo "$pkg_badge" | sed -nr "s/.*NFAddress: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+# pkg_badge=$(resim new-simple-badge)
+# export pkg_badge=$(echo "$pkg_badge" | sed -nr "s/.*NFAddress: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
 
-pkg=$(resim publish "." --owner-badge $pkg_badge)
+# pkg=$(resim publish "." --owner-badge $pkg_badge)
+# export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
+
+pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
+
 ```
 
 Created some pools using the radiswap component, so you can test trading.

@@ -10,7 +10,8 @@ use scrypto::prelude::*;
 use crate::fund::*;
 
 
-blueprint! {
+#[blueprint]
+mod defifunds_module{
 
 
     struct Defifunds {
@@ -21,7 +22,7 @@ blueprint! {
         fee_vaults: HashMap<ResourceAddress, Vault>,
         set_component_badge: ResourceAddress, //used for the work around
         component_address: Option<ComponentAddress>, //component address of self. A work around for 0.7.0
-        price_oracle: Option<ComponentAddress>,
+        //price_oracle: Option<ComponentAddress>,
         beakerfi: ComponentAddress
     }
 
@@ -33,7 +34,7 @@ blueprint! {
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "defifunds admin badge")
                 .metadata("description", "Badge used for admin stuff")
-                .initial_supply(1);
+                .mint_initial_supply(1);
 
             //used for workaround for 0.7.0 to get it selves component address
             let set_component_badge: Bucket = ResourceBuilder::new_fungible()
@@ -41,7 +42,7 @@ blueprint! {
                 .metadata("name", "set component badge")
                 .metadata("description", "used in 0.7.0 because not possible to get it selves component address")
                 .burnable(rule!(allow_all), AccessRule::DenyAll)
-                .initial_supply(1);
+                .mint_initial_supply(1);
 
             let access_rules = AccessRules::new()
                 .method("new_pool_to_whitelist", rule!(require(defifunds_admin_badge.resource_address())), AccessRule::DenyAll)
@@ -59,7 +60,7 @@ blueprint! {
                 fee_vaults: HashMap::new(),
                 set_component_badge: set_component_badge.resource_address(),
                 component_address: None,
-                price_oracle:None,
+                //price_oracle:None,
                 beakerfi: beakerfi
             }
             .instantiate();
@@ -79,9 +80,9 @@ blueprint! {
             badge.burn();
         }
 
-        pub fn set_oracle_address(&mut self, address: ComponentAddress){
-            self.price_oracle = Some(address);
-        }
+        // pub fn set_oracle_address(&mut self, address: ComponentAddress){
+        //     self.price_oracle = Some(address);
+        // }
 
         //fund make use of this method to deposit the fee to the correct vault
         //if other people decide to use this method it is just free money to the defifunds admin :D
@@ -147,7 +148,7 @@ blueprint! {
         ////////////////////////////////
 
         pub fn new_pool_to_whitelist(&mut self, pool_address: ComponentAddress){
-            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch());//+300); //will only be valid after 300 epochs 7days ish. changed since set-current-epoch is not working in 0.7.0
+            self.whitelisted_pool_addresses.insert(pool_address, Runtime::current_epoch());//+300); //removed while testing on betanet.
         }
 
         pub fn remove_pool_from_whitelist(&mut self, pool_address: ComponentAddress){

@@ -24,7 +24,8 @@ external_component! {
     }
 }
 
-blueprint! {
+#[blueprint]
+mod fund_module{
 
 
     struct Fund {
@@ -59,14 +60,14 @@ blueprint! {
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", format!("{} manager badge", fund_name))
                 .metadata("description", format!("Badge used for managing {}.", fund_name))
-                .initial_supply(1);
+                .mint_initial_supply(1);
 
 
             let internal_fund_badge: Bucket = ResourceBuilder::new_fungible()
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata("name", "Internal fund badge")
                 .metadata("description", "Badge that has the auhority to mint and burn share tokens.")
-                .initial_supply(1);
+                .mint_initial_supply(1);
 
 
             let share_tokens: Bucket = ResourceBuilder::new_fungible()
@@ -75,7 +76,7 @@ blueprint! {
                 .metadata("description", format!("Tokens used to show what share of {} you have", fund_name))
                 .mintable(rule!(require(internal_fund_badge.resource_address())), AccessRule::DenyAll)
                 .burnable(rule!(require(internal_fund_badge.resource_address())), AccessRule::DenyAll)
-                .initial_supply(initial_supply_share_tokens);
+                .mint_initial_supply(initial_supply_share_tokens);
 
 
             let access_rules = AccessRules::new()
