@@ -14,6 +14,7 @@ import {
   calculatePrice,
   addr,
   getFundAmounts,
+  getRatios,
 } from "./helperFunctions.js";
 import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
@@ -249,9 +250,9 @@ document.getElementById("btnGetPoolInfo").onclick = async function () {
 // ************ Deposit tokens to fund *************
 document.getElementById("btnDeposit").onclick = async function () {
   document.getElementById("StatusDeposit").innerText =
-    "not implementet yet. Ratios need to be made";
+    "not working yet. Ratios need to be made";
   //The ratios should be on this format Vec<(ResourceAddress, Decimal)>
-  let ratios = denneErIkkeLagetEnda;
+  let ratios = getRatios(FundComponentAddress);
   let amount = document.getElementById("inpDepositFromNumber").value;
   let selectElement = document.getElementById("selDepositFromAddress");
   let address = selectElement.options[selectElement.selectedIndex].value;
