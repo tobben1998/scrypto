@@ -1,24 +1,24 @@
 import {
-  configure,
-  requestBuilder,
-  requestItem,
+  RadixDappToolkit,
   ManifestBuilder,
   Decimal,
   Bucket,
   Expression,
   ResourceAddress,
-} from "@radixdlt/connect-button";
+  ComponentAddress,
+} from "@radixdlt/radix-dapp-toolkit";
+
 import axios from "axios";
 import { requestPoolInfo, calculatePrice } from "./helperFunctions.js";
 import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
 // Global states
 let DefiFundsComponentAddress =
-  "component_tdx_b_1qg2x3lq8atw5ng4d4uqpx4jckxxc0wyfeaks2ql426wscm6ywf";
+  "component_tdx_b_1qg3csykqk4ng4v8sms7ryq79mzn7h0k22ccsg7xrt6xqxhnplz";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qpmqp3m5jdpwvplv7zqxekg99dr5mk3cxxh9r22w62vsqasc5c";
+  "resource_tdx_b_1qq3csykqk4ng4v8sms7ryq79mzn7h0k22ccsg7xrt6xqvkp06e";
 const xrdAddress =
-  "resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x";
+  "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp";
 
 let FundComponentAddress;
 let FundManagerBadge;
@@ -37,7 +37,7 @@ document.getElementById("instantiateDefiFunds").onclick = async function () {
 
   let manifest = new ManifestBuilder()
     .callFunction(packageAddress, "Defifunds", "instantiate_defifunds", [
-      `ComponentAddress("${dexComponentAddress}")`,
+      ComponentAddress(dexComponentAddress),
     ])
     .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     .build()
@@ -100,7 +100,7 @@ document.getElementById("btnNewPoolToWhitelist").onclick = async function () {
   let manifest = new ManifestBuilder()
     .createProofFromAccountByAmount(accountAddress, 1, DefiFundsAdminBadge)
     .callMethod(DefiFundsComponentAddress, "new_pool_to_whitelist", [
-      `ComponentAddress("${pool}")`,
+      ComponentAddress(pool),
     ])
     .build()
     .toString();
@@ -120,7 +120,7 @@ document.getElementById("btnRemovePoolFromWhitelist").onclick =
     let manifest = new ManifestBuilder()
       .createProofFromAccountByAmount(accountAddress, 1, DefiFundsAdminBadge)
       .callMethod(DefiFundsComponentAddress, "remove_pool_from_whitelist", [
-        `ComponentAddress("${pool}")`,
+        ComponentAddress(pool),
       ])
       .build()
       .toString();
@@ -383,7 +383,7 @@ document.getElementById("btnTrade").onclick = async function () {
     .callMethod(FundComponentAddress, "trade_beakerfi", [
       ResourceAddress(address),
       Decimal(amount),
-      `ComponentAddress("${componentAddress}")`,
+      ComponentAddress(componentAddress),
     ])
     .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     .build()

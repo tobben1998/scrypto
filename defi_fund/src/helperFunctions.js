@@ -1,13 +1,11 @@
 import {
-  configure,
-  requestBuilder,
-  requestItem,
+  RadixDappToolkit,
   ManifestBuilder,
   Decimal,
   Bucket,
   Expression,
-  ResourceAddress,
-} from "@radixdlt/connect-button";
+  ResourceAddress
+} from '@radixdlt/radix-dapp-toolkit'
 import axios from "axios";
 
 const Addr = {

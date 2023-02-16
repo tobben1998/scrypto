@@ -1,34 +1,34 @@
 import {
-  configure,
-  requestBuilder,
-  requestItem,
+  RadixDappToolkit,
   ManifestBuilder,
   Decimal,
   Bucket,
   Expression,
   ResourceAddress,
-} from "@radixdlt/connect-button";
+} from "@radixdlt/radix-dapp-toolkit";
 
 // Configure the connect button
 export let accountAddress;
-export const connectBtn = configure({
-  dAppId: "DefiFunds",
-  networkId: 0x0b,
-  onConnect: ({ setState, getWalletData }) => {
-    getWalletData(
-      requestBuilder(requestItem.oneTimeAccounts.withoutProofOfOwnership(1))
-    ).map(({ oneTimeAccounts }) => {
-      setState({ connected: true, loading: false });
-      document.getElementById("accountAddress").innerText =
-        oneTimeAccounts[0].address;
-      accountAddress = oneTimeAccounts[0].address;
+const rdt = RadixDappToolkit(
+  {
+    dAppDefinitionAddress:
+      "account_tdx_b_1pplsymjqavhw82vkw69h6zkj5r2gzrh47lvdd0s8h0jseu8sqt",
+    dAppName: "defifunds",
+  },
+  (requestData) => {
+    requestData({
+      accounts: { quantifier: "atLeast", quantity: 1 },
+    }).map(({ data: { accounts } }) => {
+      // add accounts to dApp application state
+      console.log("account data: ", accounts);
+      document.getElementById("accountName").innerText = accounts[0].label;
+      document.getElementById("accountAddress").innerText = accounts[0].address;
+      accountAddress = accounts[0].address;
     });
   },
-  onDisconnect: ({ setState }) => {
-    setState({ connected: false });
-  },
-});
-console.log("connectBtn: ", connectBtn);
+  { networkId: 11 }
+);
+console.log("dApp Toolkit: ", rdt);
 
 // There are four classes exported in the Gateway-SDK These serve as a thin wrapper around the gateway API
 // API docs are available @ https://betanet-gateway.redoc.ly/
@@ -48,7 +48,7 @@ const streamApi = new StreamApi();
 // ************ Send Manifest*************
 export async function sendManifest(manifest) {
   // Send manifest to extension for signing
-  const result = await connectBtn.sendTransaction({
+  const result = await rdt.sendTransaction({
     transactionManifest: manifest,
     version: 1,
   });
