@@ -9,7 +9,12 @@ import {
 } from "@radixdlt/radix-dapp-toolkit";
 
 import axios from "axios";
-import { requestPoolInfo, calculatePrice } from "./helperFunctions.js";
+import {
+  requestPoolInfo,
+  calculatePrice,
+  addr,
+  getFundAmounts,
+} from "./helperFunctions.js";
 import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
 // Global states
@@ -17,8 +22,6 @@ let DefiFundsComponentAddress =
   "component_tdx_b_1qg3csykqk4ng4v8sms7ryq79mzn7h0k22ccsg7xrt6xqxhnplz";
 let DefiFundsAdminBadge =
   "resource_tdx_b_1qq3csykqk4ng4v8sms7ryq79mzn7h0k22ccsg7xrt6xqvkp06e";
-const xrdAddress =
-  "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp";
 
 let FundComponentAddress;
 let FundManagerBadge;
@@ -65,8 +68,8 @@ document.getElementById("btnNewFund").onclick = async function () {
   let imagelink = document.getElementById("inpNewFundImageLink").value;
   let websitelink = document.getElementById("inpNewFundWebsiteLink").value;
   let manifest = new ManifestBuilder()
-    .withdrawFromAccountByAmount(accountAddress, initialSupply, xrdAddress)
-    .takeFromWorktopByAmount(initialSupply, xrdAddress, "xrd_bucket")
+    .withdrawFromAccountByAmount(accountAddress, initialSupply, addr.XRD)
+    .takeFromWorktopByAmount(initialSupply, addr.XRD, "xrd_bucket")
     .callMethod(DefiFundsComponentAddress, "new_fund", [
       `"${fundName}"`,
       Bucket("xrd_bucket"),
@@ -232,6 +235,7 @@ document.getElementById("btnSetFundAddress").onclick = async function () {
 
 // ************ Get pool info *************
 document.getElementById("btnGetPoolInfo").onclick = async function () {
+  console.log("Need to update the pool addreses to correct ones");
   let selectElement = document.getElementById("selGetPoolInfo");
   let value = selectElement.options[selectElement.selectedIndex].value;
   let addresses = value.split(",");
@@ -244,7 +248,33 @@ document.getElementById("btnGetPoolInfo").onclick = async function () {
 
 // ************ Deposit tokens to fund *************
 document.getElementById("btnDeposit").onclick = async function () {
-  document.getElementById("StatusDeposit").innerText = "not implementet yet";
+  document.getElementById("StatusDeposit").innerText =
+    "not implementet yet. Ratios need to be made";
+  //The ratios should be on this format Vec<(ResourceAddress, Decimal)>
+  let ratios = denneErIkkeLagetEnda;
+  let amount = document.getElementById("inpDepositFromNumber").value;
+  let selectElement = document.getElementById("selDepositFromAddress");
+  let address = selectElement.options[selectElement.selectedIndex].value;
+  let manifest = new ManifestBuilder()
+    .withdrawFromAccountByAmount(accountAddress, amount, address)
+    .takeFromWorktopByAmount(amount, address, "bucket")
+    .callMethod(FundComponentAddress, "swap_token_for_tokens", [
+      Bucket("bucket"),
+      ratios,
+    ])
+    .callMethod(FundComponentAddress, "deposit_tokens_to_fund", [
+      Expression("ENTIRE_WORKTOP"), //this is a vec of all buckets on worktop
+    ])
+    .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
+    .build()
+    .toString();
+
+  console.log("Manifest: ", manifest);
+
+  const { commitReceipt } = await sendManifest(manifest);
+
+  document.getElementById("StatusDeposit").innerText =
+    commitReceipt.details.receipt.status;
 };
 
 // ************ Withdraw tokens from fund *************
