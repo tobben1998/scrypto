@@ -220,15 +220,24 @@ mod fund_module{
             let token_amount=token.amount();
 
             for (i, (address, ratio)) in ratios.iter().enumerate(){
-
                 //if last element swap the rest, to not recive dust becacause of rounding errors with decimal.
                 if i==ratios.len()-1{
-                    buckets.push(dex.swap(token, *address, Decimal::MAX,Decimal::ONE));
+                    if token.resource_address()==*address{
+                        buckets.push(token);
+                    } else{
+                        buckets.push(dex.swap(token, *address, Decimal::MAX,Decimal::ONE));
+                    }
                     break;
                 }
-
-                let bucket_swapped=token.take((*ratio)*token_amount);
-                buckets.push(dex.swap(bucket_swapped, *address, Decimal::MAX,Decimal::ONE)); 
+                else{
+                    let bucket=token.take((*ratio)*token_amount);
+                    if token.resource_address()==*address{
+                        buckets.push(bucket);
+                    } else{
+                        buckets.push(dex.swap(bucket, *address, Decimal::MAX,Decimal::ONE)); 
+                    }
+                    
+                }
             }
             buckets
         }
@@ -241,7 +250,12 @@ mod fund_module{
 
             let mut bucket = Bucket::new(token_address);
             for token in tokens{
-                bucket.put(dex.swap(token, token_address, Decimal::MAX,Decimal::ONE));
+                if token.resource_address()==token_address{
+                    bucket.put(token);
+                }
+                else{
+                    bucket.put(dex.swap(token, token_address, Decimal::MAX,Decimal::ONE));
+                }
             }
             bucket
         }
