@@ -33,7 +33,7 @@ mod fund_module{
         short_description: String,
         image_link: String,
         website_link: String,
-        vaults: HashMap<ResourceAddress, Vault>, //where all the tokens in the fund are stored
+        vaults: HashMap<ResourceAddress, (Vault, Decimal)>, //decimal to get acce to vault info. This is only nesecarry before rcnet. better apis will come
         fund_manager_badge: ResourceAddress, 
         internal_fund_badge: Vault,
         share_token: ResourceAddress,
@@ -91,8 +91,8 @@ mod fund_module{
                 
                 
             let mut vaults = HashMap::new();
-            vaults.insert(token.resource_address(),Vault::new(token.resource_address())); // adding a new vault to vaults: vaults<ResourceAddress, Vault>
-            vaults.get_mut(&token.resource_address()).unwrap().put(token); //putting tokens in the vault
+            vaults.insert(token.resource_address(),(Vault::new(token.resource_address()), token.amount())); // adding a new vault to vaults: vaults<ResourceAddress, Vault>
+            vaults.get_mut(&token.resource_address()).unwrap().0.put(token); //putting tokens in the vault
 
 
             let mut component = Self {
@@ -128,10 +128,12 @@ mod fund_module{
             if !self.vaults.contains_key(&resource_address){
                 let key=resource_address;
                 let value=Vault::new(resource_address);
-                self.vaults.insert(key,value);
+                self.vaults.insert(key,(value, token.amount()));
             }
             //put token in the vault with specified resource address.
-            self.vaults.get_mut(&resource_address).unwrap().put(token);
+            let value = self.vaults.get_mut(&resource_address).unwrap();
+            value.1 += token.amount();
+            value.0.put(token);
         }
 
 
@@ -148,10 +150,10 @@ mod fund_module{
 
             //calculate min_ratio to find out how much you should take from each bucket,
             //so there is enough to take, an the ratio in the pool remains the same. The rest will be given back
-            let mut ratio=tokens[0].amount()/self.vaults.get_mut(&tokens[0].resource_address()).unwrap().amount();
+            let mut ratio=tokens[0].amount()/self.vaults.get_mut(&tokens[0].resource_address()).unwrap().0.amount();
             let mut min_ratio=ratio;
             for token in &tokens{
-                ratio=token.amount()/(self.vaults.get_mut(&token.resource_address()).unwrap().amount());
+                ratio=token.amount()/(self.vaults.get_mut(&token.resource_address()).unwrap().0.amount());
                 if ratio<min_ratio{
                     min_ratio=ratio;   
                 }
@@ -159,7 +161,7 @@ mod fund_module{
             
             //take from buckets, and put them into the fund.
             for token in tokens.iter_mut(){
-                let amount=min_ratio*(self.vaults.get_mut(&token.resource_address()).unwrap().amount());
+                let amount=min_ratio*(self.vaults.get_mut(&token.resource_address()).unwrap().0.amount());
                 self.add_token_to_fund(token.take(amount));
             }
 
@@ -197,8 +199,8 @@ mod fund_module{
             let mut tokens = Vec::new();
             let your_share = share_tokens.amount()/self.total_share_tokens;
             for vault in self.vaults.values_mut(){
-                info!("Withdrew {:?} {:?}.", your_share*vault.amount(), vault.resource_address());
-                tokens.push(vault.take(your_share*vault.amount()));
+                info!("Withdrew {:?} {:?}.", your_share*vault.0.amount(), vault.0.resource_address());
+                tokens.push(vault.0.take(your_share*vault.0.amount()));
             }
 
             //burn sharetokens
@@ -314,7 +316,7 @@ mod fund_module{
 
             //do a trade using beakerfi.
             let mut dexpool: BeakerfiPoolComponentTarget = BeakerfiPoolComponentTarget::at(pool_address);
-            let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().take(amount);
+            let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().0.take(amount);
             let bucket_after_swap=dexpool.swap(bucket_before_swap, Decimal::MAX,Decimal::ONE);
             info!("You traded {:?} {:?} for {:?} {:?}.", amount, token_address, bucket_after_swap.amount(), bucket_after_swap.resource_address());
 
