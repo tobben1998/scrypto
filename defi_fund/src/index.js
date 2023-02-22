@@ -20,13 +20,20 @@ import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
 // Global states
 let DefiFundsComponentAddress =
-  "component_tdx_b_1qg3csykqk4ng4v8sms7ryq79mzn7h0k22ccsg7xrt6xqxhnplz";
+  "component_tdx_b_1q2xt8znj9786d2npmf37q0udxkzqg0ew27ftqm3dvq3sxxn62w";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qq3csykqk4ng4v8sms7ryq79mzn7h0k22ccsg7xrt6xqvkp06e";
+  "resource_tdx_b_1qzxt8znj9786d2npmf37q0udxkzqg0ew27ftqm3dvq3sv8p504";
 
 let FundComponentAddress;
 let FundManagerBadge;
 let ShareTokenAddress;
+
+document.getElementById("test").onclick = async function () {
+  let noe = await getRatios(
+    "component_tdx_b_1qfl9vpcucnrzk9982d7lx3dfy473u673jexr7aj9zvgswttyxe"
+  );
+  console.log(noe);
+};
 
 // ************************************
 // ************ DefiFunds *************
@@ -258,11 +265,11 @@ document.getElementById("btnDeposit").onclick = async function () {
   let address = selectElement.options[selectElement.selectedIndex].value;
   let manifest = new ManifestBuilder()
     .withdrawFromAccountByAmount(accountAddress, amount, address)
-    .takeFromWorktopByAmount(amount, address, "bucket")
-    .callMethod(FundComponentAddress, "swap_token_for_tokens", [
-      Bucket("bucket"),
-      ratios,
-    ])
+    // .takeFromWorktopByAmount(amount, address, "bucket")
+    // .callMethod(FundComponentAddress, "swap_token_for_tokens", [
+    //   Bucket("bucket"),
+    //   ratios,
+    // ])
     .callMethod(FundComponentAddress, "deposit_tokens_to_fund", [
       Expression("ENTIRE_WORKTOP"), //this is a vec of all buckets on worktop
     ])
@@ -289,10 +296,10 @@ document.getElementById("btnWithdraw").onclick = async function () {
     .callMethod(FundComponentAddress, "withdraw_tokens_from_fund", [
       Bucket("sharetoken_bucket"),
     ])
-    .callMethod(FundComponentAddress, "swap_tokens_for_token", [
-      Expression("ENTIRE_WORKTOP"), //this is a vec of all buckets on worktop
-      ResourceAddress(address),
-    ])
+    // .callMethod(FundComponentAddress, "swap_tokens_for_token", [
+    //   Expression("ENTIRE_WORKTOP"), //this is a vec of all buckets on worktop
+    //   ResourceAddress(address),
+    // ])
     .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     .build()
     .toString();
