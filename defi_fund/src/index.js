@@ -15,23 +15,24 @@ import {
   addr,
   getFundAmounts,
   getRatios,
+  getAllSharetokens,
+  getSharetokensWallet,
+  getFungibleTokens,
 } from "./helperFunctions.js";
 import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
 // Global states
-let DefiFundsComponentAddress =
-  "component_tdx_b_1q2xt8znj9786d2npmf37q0udxkzqg0ew27ftqm3dvq3sxxn62w";
+export let DefiFundsComponentAddress =
+  "component_tdx_b_1qg2f3kzg6ac72ys6v9n5dtr7drtvyunmfq6ge609euusty07vf";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qzxt8znj9786d2npmf37q0udxkzqg0ew27ftqm3dvq3sv8p504";
+  "resource_tdx_b_1qq2f3kzg6ac72ys6v9n5dtr7drtvyunmfq6ge609euusp9asfj";
 
 let FundComponentAddress;
 let FundManagerBadge;
 let ShareTokenAddress;
 
 document.getElementById("test").onclick = async function () {
-  let noe = await getRatios(
-    "component_tdx_b_1qfl9vpcucnrzk9982d7lx3dfy473u673jexr7aj9zvgswttyxe"
-  );
+  let noe = await getSharetokensWallet(accountAddress);
   console.log(noe);
 };
 
@@ -250,6 +251,7 @@ document.getElementById("btnGetPoolInfo").onclick = async function () {
   let address1 = addresses[0];
   let address2 = addresses[1];
   let noe = await requestPoolInfo(address1, address2);
+  //let noe = await request_pool_info();
   console.log(noe);
   console.log("Price: ", calculatePrice(noe));
 };
@@ -286,20 +288,23 @@ document.getElementById("btnDeposit").onclick = async function () {
 };
 
 // ************ Withdraw tokens from fund *************
+//problemer her med at sharetoken bucket blir en del av entire worktop?
 document.getElementById("btnWithdraw").onclick = async function () {
   let amount = document.getElementById("inpWithdrawFromNumber").value;
   let selectElement = document.getElementById("selWithdrawToAddress");
   let address = selectElement.options[selectElement.selectedIndex].value;
+
   let manifest = new ManifestBuilder()
     .withdrawFromAccountByAmount(accountAddress, amount, ShareTokenAddress)
-    .takeFromWorktopByAmount(amount, ShareTokenAddress, "sharetoken_bucket")
+    .takeFromWorktop(ShareTokenAddress, "sharetoken_bucket")
     .callMethod(FundComponentAddress, "withdraw_tokens_from_fund", [
       Bucket("sharetoken_bucket"),
     ])
-    // .callMethod(FundComponentAddress, "swap_tokens_for_token", [
-    //   Expression("ENTIRE_WORKTOP"), //this is a vec of all buckets on worktop
-    //   ResourceAddress(address),
-    // ])
+    .assertWorktopContains(ShareTokenAddress) //it failes here
+    .callMethod(FundComponentAddress, "swap_tokens_for_token", [
+      Expression("ENTIRE_WORKTOP"),
+      ResourceAddress(address),
+    ])
     .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     .build()
     .toString();
@@ -408,14 +413,18 @@ document.getElementById("btnChangeWebsite").onclick = async function () {
 };
 
 //remeber to whitelist the pool before testing
+
+//pool
+//xrd
 // ************ Trade Beakerfi *************
 document.getElementById("btnTrade").onclick = async function () {
   let amount = document.getElementById("inpTradeAmount").value;
-  let selectElement = document.getElementById("selTradeFromAddress");
-  let address = selectElement.options[selectElement.selectedIndex].value;
-  let componentAddress = document.getElementById(
-    "inpTradeComponentAddress"
-  ).value;
+  let selectElement1 = document.getElementById("selTradeFromAddress");
+  let address = selectElement1.options[selectElement1.selectedIndex].value;
+  let selectElement2 = document.getElementById("selTradeComponentAddress");
+  let componentAddress =
+    selectElement2.options[selectElement2.selectedIndex].value;
+
   let manifest = new ManifestBuilder()
     .createProofFromAccountByAmount(accountAddress, 1, FundManagerBadge)
     .callMethod(FundComponentAddress, "trade_beakerfi", [
