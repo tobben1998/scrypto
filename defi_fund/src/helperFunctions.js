@@ -10,12 +10,14 @@ import axios from "axios";
 import pkg from "numeric";
 const { Solve } = pkg;
 import * as math from "mathjs";
+import { DefiFundsComponentAddress } from "./index.js";
+import { index } from "mathjs";
 
 export const addr = {
   XRD: "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp",
-  USDP: "USDP",
-  WETH: "WETH",
-  WBTC: "WBTC",
+  BUSD: "resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah",
+  WETH: "resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp",
+  WBTC: "resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r",
 };
 
 //(resource addr, number)
@@ -25,8 +27,8 @@ export let price = {};
 export let priceTest = {
   WBTC: 50000,
   WETH: 2000,
-  USDP: 1,
-  resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp: 1,
+  BUSD: 1,
+  XRD: 1,
 };
 
 //Simple function that does not care about slippage
@@ -50,6 +52,7 @@ export async function getRatios(FundAddress) {
 }
 
 //må finne en constrained optimalization algorithm som fungerer.
+//denne fungerer ikke er bare inpirasjon fra chatgpt
 export function getOptimizedRatios(amount, x, y, addresses, fundaddress) {
   const fm = 1; //fee multiplier 1=no fee, 0=100% fee
   const n = x.length;
@@ -116,14 +119,23 @@ export async function requestPoolInfo(tokenX, tokenY) {
   }
 }
 
-//call this regularly
 export async function updatePrice(tokenX) {
   const data = await requestPoolInfo(tokenX, addr.XRD);
   price[tokenX] = calculatePrice(data);
 }
 
+//call this regularly
+export async function updateAllPrices() {
+  for (const tokenX in addr) {
+    if (tokenX != "XRD") {
+      const data = await requestPoolInfo(tokenX, addr.XRD);
+      price[tokenX] = calculatePrice(data);
+    }
+  }
+}
+
 export function calculatePrice(poolInfo) {
-  const price = poolInfo[0] / poolInfo[1];
+  const price = poolInfo[1] / poolInfo[0];
   return price;
 }
 
@@ -141,6 +153,42 @@ export async function getFundAmounts(FundAddress) {
       }
       return map;
     });
+}
+
+export async function getAllSharetokens() {
+  return axios
+    .post("https://betanet.radixdlt.com/entity/details", {
+      address: DefiFundsComponentAddress,
+    })
+    .then((response) => {
+      let vector = response.data.details.state.data_json[0];
+      return vector.map((arr) => arr[2]);
+    });
+}
+
+export async function getFungibleTokens(address) {
+  return axios
+    .post("https://betanet.radixdlt.com/entity/fungibles", {
+      address: address,
+    })
+    .then((response) => {
+      let vector = response.data.fungibles.items;
+      return vector.map((item) => [
+        item.address,
+        parseFloat(item.amount.value),
+      ]);
+    });
+}
+
+export async function getSharetokensWallet(address) {
+  const sharetokens = await getAllSharetokens();
+  const tokens = await getFungibleTokens(address);
+
+  const matchingTokens = tokens.filter((token) =>
+    sharetokens.includes(token[0])
+  );
+
+  return matchingTokens;
 }
 
 //Kan requeste fundAmounts fra tidligere state også. basert på feks timestamp.
