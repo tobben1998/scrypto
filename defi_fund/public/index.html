@@ -27,9 +27,9 @@
 
   
   <p>pkg = 
-    package_tdx_b_1q8v6dklkk7ee5cj2q78tyv9t9whjumazvc6re4q6wx2qvkgqv4<br>
+    package_tdx_b_1q942k2juc3ug5laf9j8kmlcrz8lp65ldjrj8zyfsdjhqpr2g0r<br>
     beakerfi addresses =
-    component_tdx_b_1qt8k7skqgu38a6r29fu3en84990hxjhddach9yj0xyhs6vyrx4(dummy address, so swapping not working)<br>
+    component_tdx_b_1qt7c7ws0a4f3wd3mwtcj4acvn87w4as9zyvkx3wwq8lskwe5zm<br>
   
   </p>
   <br><br>
@@ -124,9 +124,9 @@
 
   <h3>Get pool info (see console)</h3>
   <select id="selGetPoolInfo">
-    <option value="asd,resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">USP/XRD</option>
-    <option value="asd,resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">WETH/XRD</option>
-    <option value="asd,resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">WBTC/XRD</option>
+    <option value="resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah,resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">USDP/XRD</option>
+    <option value="resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp,resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">WETH/XRD</option>
+    <option value="resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r,resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">WBTC/XRD</option>
   </select>
   <p><button id="btnGetPoolInfo">Get</button></p>
 
@@ -137,9 +137,9 @@
   <input type="number" placeholder="amount" id="inpDepositFromNumber">
   <select id="selDepositFromAddress">
     <option value="resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">XRD</option>
-    <option value="as">USDP</option>
-    <option value="asd">WETH</option>
-    <option value="asd">WBTC</option>
+    <option value="resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah">USDP</option>
+    <option value="resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp">WETH</option>
+    <option value="resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r">WBTC</option>
   </select>
   <p><button id="btnDeposit">Buy</button></p>
   <div class="container">
@@ -152,9 +152,9 @@
   <input type="number" placeholder="amount of sharetokens" id="inpWithdrawFromNumber">
   <select id="selWithdrawToAddress">
     <option value="resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">XRD</option>
-    <option value="asd">USDP</option>
-    <option value="asd">WETH</option>
-    <option value="asd">WBTC</option>
+    <option value="resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah">USDP</option>
+    <option value="resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp">WETH</option>
+    <option value="resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r">WBTC</option>
   </select>
   <p><button id="btnWithdraw">Sell</button></p>
   <div class="container">
@@ -183,13 +183,18 @@
   <h3>Trade Beakerfi</h3>
   <input type="number" placeholder="amount" id="inpTradeAmount">
   <select id="selTradeFromAddress">
-    <option value="resource_tdx_b_1qzkcyv5dwq3r6kawy6pxpvcythx8rh8ntum6ws62p95s9hhz9x">XRD</option>
-    <option value="resource_tdx_b_1qpu0ks52lvuq0qdedcpx6yp4gmwer8ys8jkdlmrkkaxq6x54gd">USDP</option>
-    <option value="resource_tdx_b_1qrms49az5md2qh9qsnefecg6hccwdgyj7ewr692cdepsu60xrd">WETH</option>
-    <option value="resource_tdx_b_1qp8d7m9q3w0kcys966apcns2dmpmwsh8kswa64mxngqsun0pdu">WBTC</option>
+    <option value="resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp">XRD</option>
+    <option value="resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah">USDP</option>
+    <option value="resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp">WETH</option>
+    <option value="resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r">WBTC</option>
   </select>
-  <input type="text" placeholder="ComponentAddress of trading pool" id="inpTradeComponentAddress">
-  <p><button id="btnTrade">Change deposit feee</button></p>
+
+  <select id="selTradeComponentAddress">
+    <option value="component_tdx_b_1q2nfsu5yu2zf7u88gc45upctysdxl4lugst8vdvt7v5s6yxm58">USDP/XRD</option>
+    <option value="component_tdx_b_1q2v66h9yuj0kygjrgyjajsg000p05p6k64caaahumy2se7mvrh">WETH/XRD</option>
+    <option value="component_tdx_b_1qfzunlarnzxq34q4ycqlwp9m0flsr2l5vmnvhlencjrq9m44k8">WBTC/XRD</option>
+  </select>
+  <p><button id="btnTrade">Trade</button></p>
   <div class="container">
     <p>Status on transaction: <span id="StatusTrade"></span></p>
   </div>
@@ -197,7 +202,7 @@
 
   <h3>Change description </h3>
   <input type="text" placeholder="description" id="inpChangeDescription">
-  <p><button id="btnChangeDescription">Change deposit feee</button></p>
+  <p><button id="btnChangeDescription">Change description</button></p>
   <div class="container">
     <p>Status on transaction: <span id="StatusChangeDescription"></span></p>
   </div>
@@ -221,4 +226,4 @@
 
 </body>
 
-</html>
+</html>component_tdx_b_1q2v66h9yuj0kygjrgyjajsg000p05p6k64caaahumy2se7mvrh
