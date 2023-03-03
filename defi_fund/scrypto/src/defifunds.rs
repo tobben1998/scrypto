@@ -156,6 +156,10 @@ mod defifunds_module{
         }
 
         pub fn change_deposit_fee_defifunds(&mut self, new_fee: Decimal){
+            assert!(new_fee >= dec!(0) && new_fee <= dec!(5),"Fee need to be in range of 0% to 5%.");
+            self.defifunds_deposit_fee=new_fee;
+            info!("Deposit fee updated to: {:?}%.", self.defifunds_deposit_fee);
+
             self.defifunds_deposit_fee=new_fee;
         }
 
