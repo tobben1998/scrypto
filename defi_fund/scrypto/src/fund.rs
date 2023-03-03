@@ -6,9 +6,7 @@ external_component! {
         fn swap(
             &mut self,
             input: Bucket,
-            output: ResourceAddress,
-            slippage: Decimal,
-            original_rate: Decimal
+            output: ResourceAddress
         ) -> Bucket;
     }
 }
@@ -17,9 +15,7 @@ external_component! {
     BeakerfiPoolComponentTarget {
         fn swap(
             &mut self,
-            input: Bucket,
-            slippage: Decimal,
-            original_rate: Decimal
+            input: Bucket
         ) -> Bucket;
     }
 }
@@ -198,9 +194,11 @@ mod fund_module{
             //take fund from vaults and put into a Vec<Bucket> called tokens
             let mut tokens = Vec::new();
             let your_share = share_tokens.amount()/self.total_share_tokens;
-            for vault in self.vaults.values_mut(){
-                info!("Withdrew {:?} {:?}.", your_share*vault.0.amount(), vault.0.resource_address());
-                tokens.push(vault.0.take(your_share*vault.0.amount()));
+            for value in self.vaults.values_mut(){
+                let amount=your_share*value.0.amount();
+                info!("Withdrew {:?} {:?}.", amount, value.0.resource_address());
+                tokens.push(value.0.take(amount));
+                value.1 -= amount;
             }
 
             //burn sharetokens
@@ -225,7 +223,7 @@ mod fund_module{
                     if token.resource_address()==*address{
                         buckets.push(token);
                     } else{
-                        buckets.push(dex.swap(token, *address, Decimal::MAX,Decimal::ONE));
+                        buckets.push(dex.swap(token, *address));
                     }
                     break;
                 }
@@ -234,7 +232,7 @@ mod fund_module{
                     if token.resource_address()==*address{
                         buckets.push(bucket);
                     } else{
-                        buckets.push(dex.swap(bucket, *address, Decimal::MAX,Decimal::ONE)); 
+                        buckets.push(dex.swap(bucket, *address)); 
                     }
                     
                 }
@@ -254,7 +252,7 @@ mod fund_module{
                     bucket.put(token);
                 }
                 else{
-                    bucket.put(dex.swap(token, token_address, Decimal::MAX,Decimal::ONE));
+                    bucket.put(dex.swap(token, token_address));
                 }
             }
             bucket
@@ -331,7 +329,7 @@ mod fund_module{
             //do a trade using beakerfi.
             let mut dexpool: BeakerfiPoolComponentTarget = BeakerfiPoolComponentTarget::at(pool_address);
             let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().0.take(amount);
-            let bucket_after_swap=dexpool.swap(bucket_before_swap, Decimal::MAX,Decimal::ONE);
+            let bucket_after_swap=dexpool.swap(bucket_before_swap);
             info!("You traded {:?} {:?} for {:?} {:?}.", amount, token_address, bucket_after_swap.amount(), bucket_after_swap.resource_address());
 
             self.add_token_to_fund(bucket_after_swap);
