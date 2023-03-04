@@ -25,9 +25,9 @@ import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
 // Global states
 export let DefiFundsComponentAddress =
-  "component_tdx_b_1qtscpaffn2p5d7sakqre965ns28twejlm3letuf67hqs2w83we";
+  "component_tdx_b_1qte8y8v9gttjqcpw3q5060u34mpm2y7yxf62d096k64sd3yruu";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qrscpaffn2p5d7sakqre965ns28twejlm3letuf67hqsq04ltz";
+  "resource_tdx_b_1qz8p4nd5atjfh63nj0ecuqnlv350f6h27nltp5uxqmwsdrdwdk";
 
 let FundComponentAddress;
 let FundManagerBadge;
@@ -247,7 +247,6 @@ document.getElementById("btnSetFundAddress").onclick = async function () {
 
 // ************ Get pool info *************
 document.getElementById("btnGetPoolInfo").onclick = async function () {
-  console.log("Need to update the pool addreses to correct ones");
   let selectElement = document.getElementById("selGetPoolInfo");
   let value = selectElement.options[selectElement.selectedIndex].value;
   let addresses = value.split(",");
@@ -261,9 +260,6 @@ document.getElementById("btnGetPoolInfo").onclick = async function () {
 
 // ************ Deposit tokens to fund *************
 document.getElementById("btnDeposit").onclick = async function () {
-  document.getElementById("StatusDeposit").innerText =
-    "not working yet. Ratios need to be made";
-  //The ratios should be on this format Vec<(ResourceAddress, Decimal)>
   let ratios = await getRatios(FundComponentAddress);
   let ratioTuples = [];
   for (let [address, ratio] of ratios) {
@@ -296,7 +292,6 @@ document.getElementById("btnDeposit").onclick = async function () {
 };
 
 // ************ Withdraw tokens from fund *************
-//problemer her med at sharetoken bucket blir en del av entire worktop?
 document.getElementById("btnWithdraw").onclick = async function () {
   let amount = document.getElementById("inpWithdrawFromNumber").value;
   let selectElement = document.getElementById("selWithdrawToAddress");
@@ -310,12 +305,12 @@ document.getElementById("btnWithdraw").onclick = async function () {
     ])
     .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     ///////////////////////////////////////////////////////////
-    .withdrawFromAccountByAmount(accountAddress, amount, addr.XRD)
-    .callMethod(FundComponentAddress, "swap_tokens_for_token", [
-      Expression("ENTIRE_WORKTOP"),
-      ResourceAddress(address),
-    ])
-    .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
+    // .withdrawFromAccountByAmount(accountAddress, amount, addr.XRD)
+    // .callMethod(FundComponentAddress, "swap_tokens_for_token", [
+    //   Expression("ENTIRE_WORKTOP"),
+    //   ResourceAddress(address),
+    // ])
+    // .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     .build()
     .toString();
 
