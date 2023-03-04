@@ -2,6 +2,8 @@ import {
   RadixDappToolkit,
   ManifestBuilder,
   Decimal,
+  Array,
+  Tuple,
   Bucket,
   Expression,
   ResourceAddress,
@@ -23,16 +25,17 @@ import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 
 // Global states
 export let DefiFundsComponentAddress =
-  "component_tdx_b_1qg2f3kzg6ac72ys6v9n5dtr7drtvyunmfq6ge609euusty07vf";
+  "component_tdx_b_1qtscpaffn2p5d7sakqre965ns28twejlm3letuf67hqs2w83we";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qq2f3kzg6ac72ys6v9n5dtr7drtvyunmfq6ge609euusp9asfj";
+  "resource_tdx_b_1qrscpaffn2p5d7sakqre965ns28twejlm3letuf67hqsq04ltz";
 
 let FundComponentAddress;
 let FundManagerBadge;
 let ShareTokenAddress;
 
 document.getElementById("test").onclick = async function () {
-  let noe = await getSharetokensWallet(accountAddress);
+  //let noe = await getSharetokensWallet(accountAddress);
+  let noe = await getRatios(FundComponentAddress);
   console.log(noe);
 };
 
@@ -261,17 +264,22 @@ document.getElementById("btnDeposit").onclick = async function () {
   document.getElementById("StatusDeposit").innerText =
     "not working yet. Ratios need to be made";
   //The ratios should be on this format Vec<(ResourceAddress, Decimal)>
-  let ratios = getRatios(FundComponentAddress);
+  let ratios = await getRatios(FundComponentAddress);
+  let ratioTuples = [];
+  for (let [address, ratio] of ratios) {
+    ratioTuples.push(Tuple(ResourceAddress(address), Decimal(ratio)));
+  }
+  console.log(ratios);
   let amount = document.getElementById("inpDepositFromNumber").value;
   let selectElement = document.getElementById("selDepositFromAddress");
   let address = selectElement.options[selectElement.selectedIndex].value;
   let manifest = new ManifestBuilder()
     .withdrawFromAccountByAmount(accountAddress, amount, address)
-    // .takeFromWorktopByAmount(amount, address, "bucket")
-    // .callMethod(FundComponentAddress, "swap_token_for_tokens", [
-    //   Bucket("bucket"),
-    //   ratios,
-    // ])
+    .takeFromWorktopByAmount(amount, address, "bucket")
+    .callMethod(FundComponentAddress, "swap_token_for_tokens", [
+      Bucket("bucket"),
+      Array("Tuple", ...ratioTuples),
+    ])
     .callMethod(FundComponentAddress, "deposit_tokens_to_fund", [
       Expression("ENTIRE_WORKTOP"), //this is a vec of all buckets on worktop
     ])
@@ -296,11 +304,13 @@ document.getElementById("btnWithdraw").onclick = async function () {
 
   let manifest = new ManifestBuilder()
     .withdrawFromAccountByAmount(accountAddress, amount, ShareTokenAddress)
-    .takeFromWorktop(ShareTokenAddress, "sharetoken_bucket")
+    .takeFromWorktop(ShareTokenAddress, "bucket")
     .callMethod(FundComponentAddress, "withdraw_tokens_from_fund", [
-      Bucket("sharetoken_bucket"),
+      Bucket("bucket"),
     ])
-    .assertWorktopContains(ShareTokenAddress) //it failes here
+    .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
+    ///////////////////////////////////////////////////////////
+    .withdrawFromAccountByAmount(accountAddress, amount, addr.XRD)
     .callMethod(FundComponentAddress, "swap_tokens_for_token", [
       Expression("ENTIRE_WORKTOP"),
       ResourceAddress(address),

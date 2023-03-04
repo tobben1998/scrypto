@@ -23,23 +23,17 @@ export const addr = {
 //(resource addr, number)
 export let price = {};
 
-//will not be updated, just for testing
-export let priceTest = {
-  WBTC: 50000,
-  WETH: 2000,
-  BUSD: 1,
-  XRD: 1,
-};
-
 //Simple function that does not care about slippage
 //need to make a maximation function that uses liquidity in the pool to calculate what the ratio shoudl be.
 export async function getRatios(FundAddress) {
   let amounts = await getFundAmounts(FundAddress);
+  //console.log(amounts);
   let totalValue = 0;
   let values = new Map();
-  //update prices before here, so you get the most uptodate ones.
+  await updateAllPrices();
+  //console.log(getAllPrices());
   for (let [address, amount] of amounts.entries()) {
-    let value = amount * priceTest[address];
+    let value = amount * price[address];
     values.set(address, value);
     totalValue += value;
   }
@@ -119,19 +113,25 @@ export async function requestPoolInfo(tokenX, tokenY) {
   }
 }
 
-export async function updatePrice(tokenX) {
-  const data = await requestPoolInfo(tokenX, addr.XRD);
-  price[tokenX] = calculatePrice(data);
+export async function updatePrice(tokenXAddress) {
+  const data = await requestPoolInfo(tokenXAddress, addr.XRD);
+  price[tokenXAddress] = calculatePrice(data);
 }
 
 //call this regularly
 export async function updateAllPrices() {
-  for (const tokenX in addr) {
-    if (tokenX != "XRD") {
-      const data = await requestPoolInfo(tokenX, addr.XRD);
-      price[tokenX] = calculatePrice(data);
+  for (const [tokenSymbol, tokenAddress] of Object.entries(addr)) {
+    if (tokenSymbol !== "XRD") {
+      const data = await requestPoolInfo(tokenAddress, addr.XRD);
+      price[tokenAddress] = calculatePrice(data);
+    } else {
+      price[tokenAddress] = 1;
     }
   }
+}
+
+export function getAllPrices() {
+  return price;
 }
 
 export function calculatePrice(poolInfo) {
