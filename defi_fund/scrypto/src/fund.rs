@@ -124,7 +124,7 @@ mod fund_module{
             if !self.vaults.contains_key(&resource_address){
                 let key=resource_address;
                 let value=Vault::new(resource_address);
-                self.vaults.insert(key,(value, token.amount()));
+                self.vaults.insert(key,(value, dec!(0)));
             }
             //put token in the vault with specified resource address.
             let value = self.vaults.get_mut(&resource_address).unwrap();
