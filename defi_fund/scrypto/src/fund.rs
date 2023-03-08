@@ -29,7 +29,7 @@ mod fund_module{
         short_description: String,
         image_link: String,
         website_link: String,
-        vaults: HashMap<ResourceAddress, (Vault, Decimal)>, //decimal to get acce to vault info. This is only nesecarry before rcnet. better apis will come
+        vaults: HashMap<ResourceAddress, (Vault, Decimal)>, //decimal to get access to vault info. This is only nesecarry before rcnet. better apis will come
         fund_manager_badge: ResourceAddress, 
         internal_fund_badge: Vault,
         share_token: ResourceAddress,
@@ -128,7 +128,7 @@ mod fund_module{
             }
             //put token in the vault with specified resource address.
             let value = self.vaults.get_mut(&resource_address).unwrap();
-            value.1 += token.amount();
+            value.1 += token.amount(); //update field value, because not api for vault amount
             value.0.put(token);
         }
 
@@ -198,7 +198,7 @@ mod fund_module{
                 let amount=your_share*value.0.amount();
                 info!("Withdrew {:?} {:?}.", amount, value.0.resource_address());
                 tokens.push(value.0.take(amount));
-                value.1 -= amount;
+                value.1 -= amount; //update field value, because not api for vault amount
             }
 
             //burn sharetokens
@@ -329,6 +329,7 @@ mod fund_module{
             //do a trade using beakerfi.
             let mut dexpool: BeakerfiPoolComponentTarget = BeakerfiPoolComponentTarget::at(pool_address);
             let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().0.take(amount);
+            self.vaults.get_mut(&token_address).unwrap().1 -= amount; //update field value, because not api for vault amount
             let bucket_after_swap=dexpool.swap(bucket_before_swap);
             info!("You traded {:?} {:?} for {:?} {:?}.", amount, token_address, bucket_after_swap.amount(), bucket_after_swap.resource_address());
 
