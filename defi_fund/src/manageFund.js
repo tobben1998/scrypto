@@ -20,7 +20,7 @@ export async function getFundManagerFunds(address) {
   return matchingFunds.map((fund) => fund[0]);
 }
 
-export async function getFundNameAndImage(fundAddress) {
+export async function getFundNameImageBadge(fundAddress) {
   return axios
     .post("https://betanet.radixdlt.com/entity/details", {
       address: fundAddress,
@@ -29,7 +29,8 @@ export async function getFundNameAndImage(fundAddress) {
       const data = response.data.details.state.data_json;
       const fundName = data[0];
       const imageLink = data[2];
-      return [fundName, imageLink];
+      const fundManagerBadge = data[5];
+      return [fundName, imageLink, fundManagerBadge];
     });
 }
 
