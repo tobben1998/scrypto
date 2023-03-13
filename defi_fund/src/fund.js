@@ -18,7 +18,15 @@ export async function getFundInfo(fundAddress) {
       const websitelink = data[3];
       const depositFee = data[10];
       const fundStrategy = data[1];
-      return [fundName, imageLink, websitelink, depositFee, fundStrategy];
+      const sharetokenAddress = data[7];
+      return [
+        fundName,
+        imageLink,
+        websitelink,
+        depositFee,
+        fundStrategy,
+        sharetokenAddress,
+      ];
     });
 }
 
