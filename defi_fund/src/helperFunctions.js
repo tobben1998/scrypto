@@ -7,11 +7,7 @@ import {
   ResourceAddress,
 } from "@radixdlt/radix-dapp-toolkit";
 import axios from "axios";
-import pkg from "numeric";
-const { Solve } = pkg;
-import * as math from "mathjs";
 import { DefiFundsComponentAddress } from "./index.js";
-import { index } from "mathjs";
 
 export const addr = {
   XRD: "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp",
@@ -118,7 +114,7 @@ export async function updatePrice(tokenXAddress) {
   price[tokenXAddress] = calculatePrice(data);
 }
 
-//call this regularly
+//call this regularly (can optimizes it by running it in parallell)
 export async function updateAllPrices() {
   for (const [tokenSymbol, tokenAddress] of Object.entries(addr)) {
     if (tokenSymbol !== "XRD") {
@@ -166,6 +162,17 @@ export async function getAllSharetokens() {
     });
 }
 
+export async function getAllFunds() {
+  return axios
+    .post("https://betanet.radixdlt.com/entity/details", {
+      address: DefiFundsComponentAddress,
+    })
+    .then((response) => {
+      let vector = response.data.details.state.data_json[0];
+      return vector;
+    });
+}
+
 export async function getFungibleTokens(address) {
   return axios
     .post("https://betanet.radixdlt.com/entity/fungibles", {
@@ -177,6 +184,19 @@ export async function getFungibleTokens(address) {
         item.address,
         parseFloat(item.amount.value),
       ]);
+    });
+}
+
+export async function getShareTokenAddressAndAmount(fundAddress) {
+  return axios
+    .post("https://betanet.radixdlt.com/entity/details", {
+      address: fundAddress,
+    })
+    .then((response) => {
+      const data = response.data.details.state.data_json;
+      const address = data[7];
+      const amount = data[8];
+      return [address, amount];
     });
 }
 

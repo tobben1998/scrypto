@@ -4,6 +4,7 @@ import {
   Decimal,
   Array,
   Tuple,
+  String,
   Bucket,
   Expression,
   ResourceAddress,
@@ -22,12 +23,14 @@ import {
   getFungibleTokens,
 } from "./helperFunctions.js";
 import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
+import { getYourShareAndTvl, getManageFundPortfolio } from "./manageFund.js";
 
 // Global states
 export let DefiFundsComponentAddress =
-  "component_tdx_b_1qte8y8v9gttjqcpw3q5060u34mpm2y7yxf62d096k64sd3yruu";
+  //"component_tdx_b_1qte8y8v9gttjqcpw3q5060u34mpm2y7yxf62d096k64sd3yruu";
+  "component_tdx_b_1qgxkhwdt9exduue7zpn8j9pvrptgx45gjvc63s3r2elql7syc4";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qz8p4nd5atjfh63nj0ecuqnlv350f6h27nltp5uxqmwsdrdwdk";
+  "resource_tdx_b_1qqxkhwdt9exduue7zpn8j9pvrptgx45gjvc63s3r2elq4lz2aw";
 
 let FundComponentAddress;
 let FundManagerBadge;
@@ -35,7 +38,9 @@ let ShareTokenAddress;
 
 document.getElementById("test").onclick = async function () {
   //let noe = await getSharetokensWallet(accountAddress);
-  let noe = await getRatios(FundComponentAddress);
+  let noe = await getManageFundPortfolio(
+    "component_tdx_b_1q2d9jctgr7vfe667sy4js7p0ycgw64mfk4rqvaewlqjq9q6lem"
+  );
   console.log(noe);
 };
 
