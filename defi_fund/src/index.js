@@ -12,18 +12,27 @@ import {
 } from "@radixdlt/radix-dapp-toolkit";
 
 import axios from "axios";
-import {
-  requestPoolInfo,
-  calculatePrice,
-  addr,
-  getFundAmounts,
-  getRatios,
-  getAllSharetokens,
-  getSharetokensWallet,
-  getFungibleTokens,
-} from "./helperFunctions.js";
 import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
-import { getYourShareAndTvl, getManageFundPortfolio } from "./manageFund.js";
+import {
+  fetchPoolInfo,
+  addr,
+  getRatios,
+  getTokenPrices,
+  getFunds,
+  getFundsInfo,
+  getTokensInWallet,
+  updateAll,
+} from "./apiDataFetcher.js";
+import { getPortfolio, getSharetokensWallet } from "./myInvestments";
+import {
+  getFundManagerFunds,
+  getYourShareAndTvl,
+  getManageFundPortfolio,
+} from "./manageFund.js";
+import {
+  getFundPortfolio,
+  //getYourShareAndTvl,
+} from "./fund.js";
 
 // Global states
 export let DefiFundsComponentAddress =
@@ -37,11 +46,23 @@ let FundManagerBadge;
 let ShareTokenAddress;
 
 document.getElementById("test").onclick = async function () {
-  //let noe = await getSharetokensWallet(accountAddress);
-  let noe = await getManageFundPortfolio(
-    "component_tdx_b_1q2d9jctgr7vfe667sy4js7p0ycgw64mfk4rqvaewlqjq9q6lem"
+  await updateAll(
+    "account_tdx_b_1pryst0uqgq02tnv2qjdupsgs9pmsqe2plq84wm4j70pqjqv5q4"
   );
-  console.log(noe);
+  console.log(getTokenPrices());
+  console.log(getFunds());
+  console.log(getFundsInfo());
+  console.log(getTokensInWallet());
+  console.log(getSharetokensWallet());
+  console.log(getPortfolio());
+
+  console.log(getFundManagerFunds());
+  const selectedFund =
+    "component_tdx_b_1q2d9jctgr7vfe667sy4js7p0ycgw64mfk4rqvaewlqjq9q6lem";
+  console.log(getYourShareAndTvl(selectedFund));
+  console.log(getManageFundPortfolio(selectedFund));
+  console.log(getYourShareAndTvl(selectedFund));
+  console.log(getFundPortfolio(selectedFund));
 };
 
 // ************************************
@@ -88,12 +109,12 @@ document.getElementById("btnNewFund").onclick = async function () {
     .withdrawFromAccountByAmount(accountAddress, initialSupply, addr.XRD)
     .takeFromWorktopByAmount(initialSupply, addr.XRD, "xrd_bucket")
     .callMethod(DefiFundsComponentAddress, "new_fund", [
-      `"${fundName}"`,
+      String(fundName),
       Bucket("xrd_bucket"),
       Decimal(initialSupply),
-      `"${description}"`,
-      `"${imagelink}"`,
-      `"${websitelink}"`,
+      String(description),
+      String(imagelink),
+      String(websitelink),
     ])
     .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     .build()
@@ -257,10 +278,10 @@ document.getElementById("btnGetPoolInfo").onclick = async function () {
   let addresses = value.split(",");
   let address1 = addresses[0];
   let address2 = addresses[1];
-  let noe = await requestPoolInfo(address1, address2);
+  let noe = await fetchPoolInfo(address1, address2);
   //let noe = await request_pool_info();
   console.log(noe);
-  console.log("Price: ", calculatePrice(noe));
+  console.log("Price: ", noe[1] / noe[0]);
 };
 
 // ************ Deposit tokens to fund *************
