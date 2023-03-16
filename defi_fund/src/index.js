@@ -22,6 +22,8 @@ import {
   getFundsInfo,
   getTokensInWallet,
   updateAll,
+  getFundTokenAmount,
+  getTokenAmount,
 } from "./apiDataFetcher.js";
 import { getPortfolio, getSharetokensWallet } from "./myInvestments";
 import {
@@ -37,9 +39,11 @@ import {
 // Global states
 export let DefiFundsComponentAddress =
   //"component_tdx_b_1qte8y8v9gttjqcpw3q5060u34mpm2y7yxf62d096k64sd3yruu";
-  "component_tdx_b_1qgxkhwdt9exduue7zpn8j9pvrptgx45gjvc63s3r2elql7syc4";
+  //"component_tdx_b_1qgxkhwdt9exduue7zpn8j9pvrptgx45gjvc63s3r2elql7syc4";
+  "component_tdx_b_1qff3l8hj4le2nppf6yzgn293rj9g7yyu7v079gfq4h5sv60qxz";
 let DefiFundsAdminBadge =
-  "resource_tdx_b_1qqxkhwdt9exduue7zpn8j9pvrptgx45gjvc63s3r2elq4lz2aw";
+  //"resource_tdx_b_1qqxkhwdt9exduue7zpn8j9pvrptgx45gjvc63s3r2elq4lz2aw";
+  "resource_tdx_b_1qpf3l8hj4le2nppf6yzgn293rj9g7yyu7v079gfq4h5sxmawre";
 
 let FundComponentAddress;
 let FundManagerBadge;
@@ -47,7 +51,7 @@ let ShareTokenAddress;
 
 document.getElementById("test").onclick = async function () {
   await updateAll(
-    "account_tdx_b_1pryst0uqgq02tnv2qjdupsgs9pmsqe2plq84wm4j70pqjqv5q4"
+    "account_tdx_b_1prtyyczzd3fhmrt39fwhtvel9gjhe0ghmane94sfqhyq57045z"
   );
   console.log(getTokenPrices());
   console.log(getFunds());
@@ -55,14 +59,15 @@ document.getElementById("test").onclick = async function () {
   console.log(getTokensInWallet());
   console.log(getSharetokensWallet());
   console.log(getPortfolio());
-
   console.log(getFundManagerFunds());
   const selectedFund =
-    "component_tdx_b_1q2d9jctgr7vfe667sy4js7p0ycgw64mfk4rqvaewlqjq9q6lem";
+    "component_tdx_b_1q2cumvgvegl4lt9natpzldcz9wnuhh59pu4md5wdj0msl48ad5";
   console.log(getYourShareAndTvl(selectedFund));
   console.log(getManageFundPortfolio(selectedFund));
   console.log(getYourShareAndTvl(selectedFund));
   console.log(getFundPortfolio(selectedFund));
+  console.log(getFundTokenAmount(selectedFund, xrdAddr));
+  console.log(getTokenAmount(xrdAddr));
 };
 
 // ************************************
@@ -102,6 +107,7 @@ document.getElementById("instantiateDefiFunds").onclick = async function () {
 document.getElementById("btnNewFund").onclick = async function () {
   let fundName = document.getElementById("inpNewFundName").value;
   let initialSupply = document.getElementById("inpNewFundInitialSupply").value;
+  let depositFee = document.getElementById("inpNewFundDepositFee").value;
   let description = document.getElementById("inpNewFundDescription").value;
   let imagelink = document.getElementById("inpNewFundImageLink").value;
   let websitelink = document.getElementById("inpNewFundWebsiteLink").value;
@@ -112,6 +118,7 @@ document.getElementById("btnNewFund").onclick = async function () {
       String(fundName),
       Bucket("xrd_bucket"),
       Decimal(initialSupply),
+      Decimal(depositFee),
       String(description),
       String(imagelink),
       String(websitelink),

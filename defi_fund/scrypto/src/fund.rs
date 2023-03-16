@@ -45,6 +45,7 @@ mod fund_module{
             fund_name: String,
             token: Bucket, 
             initial_supply_share_tokens: Decimal,
+            deposit_fee_fund_manager: Decimal,
             defifunds: ComponentAddress,
             short_description: String,
             image_link: String,
@@ -102,7 +103,7 @@ mod fund_module{
                 total_share_tokens: initial_supply_share_tokens,
                 share_token: share_tokens.resource_address(),
                 fees_fund_manager_vault: Vault::new(share_tokens.resource_address()),
-                deposit_fee_fund_manager: dec!(0),
+                deposit_fee_fund_manager: deposit_fee_fund_manager,
                 defifunds: defifunds
             }
             .instantiate();
@@ -176,11 +177,7 @@ mod fund_module{
             let fee_defifunds=(defifunds.get_defifunds_deposit_fee()/dec!(100))*share_tokens.amount();
 
             self.fees_fund_manager_vault.put(share_tokens.take(fee_fund_manager));
-            defifunds.add_token_to_fee_vaults(share_tokens.take(fee_defifunds));
-            
-            info!("Returned share tokens: {:?}.", share_tokens.amount());
-            info!("share tokens fee: {:?}.", fee_fund_manager+fee_defifunds);
-      
+            defifunds.add_token_to_fee_vaults(share_tokens.take(fee_defifunds));      
 
             (share_tokens, tokens)
         }
@@ -196,7 +193,6 @@ mod fund_module{
             let your_share = share_tokens.amount()/self.total_share_tokens;
             for value in self.vaults.values_mut(){
                 let amount=your_share*value.0.amount();
-                info!("Withdrew {:?} {:?}.", amount, value.0.resource_address());
                 tokens.push(value.0.take(amount));
                 value.1 -= amount; //update field value, because not api for vault amount
             }
@@ -259,57 +255,18 @@ mod fund_module{
         }
 
 
-
-        //I guess these three methods can be done offchain, since you do not need accurate answers here.
-        //only the first one of these work here, Need the price orcal cmponent address taklen from a place for the
-        //two nect methods
-        //(get_token_amounts_get toal_value get_token_ratio)
-
-        // pub fn get_token_amounts(&mut self) -> HashMap<ResourceAddress, Decimal>{
-        //     let mut map=HashMap::new();
-        //     for (address, vault) in self.vaults.iter_mut(){
-        //         map.insert(*address, vault.amount());
-        //     }
-        //     map
-        // }
-
-        // pub fn get_total_value(&mut self) -> Decimal{
-
-        //     let radiswap: RadiswapGlobalComponentRef = pool_address.into();
-        //     let priceoracle_component: PriceoracleGlobalComponentRef = globalized_component.into();
-        //     let total_value=dec!(0);
-        //     for (address, vault) in self.vaults.into_iter(){
-        //         total_value+=vault.amount()*PriceoracleComponent::get_price(address)
-        //     }
-        //     total_value
-        // }
-
-        // pub fn get_token_ratio(&mut self) -> HashMap<ResourceAddress, Decimal>{
-        //     let map=HashMap::new();
-        //     let total_value=self.get_total_value();
-        //     for (address, vault) in self.vaults.into_iter(){
-        //         let ratio=(vault.amount()*PriceoracleComponent::get_price(address))/(total_value);
-        //         map.insert(address, ratio);
-        //     map
-        // }
-
-
-
         //////////////////////////////
         ///methods for fund manager///
         ////////////////////////////// 
 
 
         pub fn withdraw_collected_fee_fund_manager(&mut self) -> Bucket{
-            info!("Withdrew {:?} sharetokens from vault.", self.fees_fund_manager_vault.amount());
             self.fees_fund_manager_vault.take_all()
         }
 
         pub fn change_deposit_fee_fund_manager(&mut self, new_fee: Decimal){
             assert!(new_fee >= dec!(0) && new_fee <= dec!(5),"Fee need to be in range of 0% to 5%.");
             self.deposit_fee_fund_manager=new_fee;
-            info!("Deposit fee updated to: {:?}%.", self.deposit_fee_fund_manager);
-
         }
 
         //This method lets the fund manager trade with all the funds assests on whitelisted pools.
@@ -319,6 +276,7 @@ mod fund_module{
             //checks if the pool is whitelisted
             let mut whitelisted=false;
             let defifunds: DefifundsGlobalComponentRef= self.defifunds.into();
+            
             for (&address, &epoch) in defifunds.get_whitelisted_pool_addresses().iter(){
                 if address == pool_address && epoch <= Runtime::current_epoch(){
                     whitelisted=true;
@@ -328,11 +286,11 @@ mod fund_module{
 
             //do a trade using beakerfi.
             let mut dexpool: BeakerfiPoolComponentTarget = BeakerfiPoolComponentTarget::at(pool_address);
+            
             let bucket_before_swap=self.vaults.get_mut(&token_address).unwrap().0.take(amount);
             self.vaults.get_mut(&token_address).unwrap().1 -= amount; //update field value, because not api for vault amount
+            
             let bucket_after_swap=dexpool.swap(bucket_before_swap);
-            info!("You traded {:?} {:?} for {:?} {:?}.", amount, token_address, bucket_after_swap.amount(), bucket_after_swap.resource_address());
-
             self.add_token_to_fund(bucket_after_swap);
 
         }

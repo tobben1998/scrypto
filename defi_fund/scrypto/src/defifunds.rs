@@ -1,11 +1,3 @@
-//pkg address for code 08.02
-//pkg=package_tdx_b_1q84ymxvegc76nlkkw06ktdqltmv5lpnxaesej9asrtnquz8uu7
-
-//beakerfi addresses
-//component_tdx_b_1qtmzcwxvcvv7audnqgpchnxqphfmhvvujefwfs3a6auqyps8e3
-
-
-
 use scrypto::prelude::*;
 use crate::fund::*;
 
@@ -22,8 +14,7 @@ mod defifunds_module{
         fee_vaults: HashMap<ResourceAddress, Vault>,
         set_component_badge: ResourceAddress, //used for the work around
         component_address: Option<ComponentAddress>, //component address of self. A work around for 0.7.0
-        //price_oracle: Option<ComponentAddress>,
-        beakerfi: ComponentAddress
+        beakerfi: ComponentAddress,
     }
 
     impl Defifunds {
@@ -60,7 +51,6 @@ mod defifunds_module{
                 fee_vaults: HashMap::new(),
                 set_component_badge: set_component_badge.resource_address(),
                 component_address: None,
-                //price_oracle:None,
                 beakerfi: beakerfi
             }
             .instantiate();
@@ -79,10 +69,6 @@ mod defifunds_module{
             self.component_address = Some(address);
             badge.burn();
         }
-
-        // pub fn set_oracle_address(&mut self, address: ComponentAddress){
-        //     self.price_oracle = Some(address);
-        // }
 
         //fund make use of this method to deposit the fee to the correct vault
         //if other people decide to use this method it is just free money to the defifunds admin :D
@@ -106,6 +92,7 @@ mod defifunds_module{
             fund_name: String, 
             token: Bucket, 
             initial_supply_share_tokens: Decimal, 
+            deposit_fee_fund_manager: Decimal,
             short_description: String,
             image_link: String,
             website_link: String
@@ -114,6 +101,7 @@ mod defifunds_module{
                 fund_name,
                 token,
                 initial_supply_share_tokens,
+                deposit_fee_fund_manager,
                 self.component_address.unwrap(), //component address of Defifunds
                 short_description,
                 image_link,
@@ -158,9 +146,6 @@ mod defifunds_module{
         pub fn change_deposit_fee_defifunds(&mut self, new_fee: Decimal){
             assert!(new_fee >= dec!(0) && new_fee <= dec!(5),"Fee need to be in range of 0% to 5%.");
             self.defifunds_deposit_fee=new_fee;
-            info!("Deposit fee updated to: {:?}%.", self.defifunds_deposit_fee);
-
-            self.defifunds_deposit_fee=new_fee;
         }
 
         pub fn withdraw_collected_fee_defifunds(&mut self, address: ResourceAddress) -> Bucket{
@@ -173,8 +158,6 @@ mod defifunds_module{
             }
             tokens
         }
-
-
 
     }
 }
