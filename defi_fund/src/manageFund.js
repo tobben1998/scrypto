@@ -48,12 +48,13 @@ export function getManageFundPortfolio(fundAddress) {
   const portfolio = new Map();
   for (const [tokenAddress, amount] of fundAmounts) {
     const usdValue = getTokenPrice(tokenAddress) * amount;
-    const { name, image } = tokensInfo.get(tokenAddress);
+    const { name, ticker, image } = tokensInfo.get(tokenAddress);
 
     totalUsdValue += usdValue;
 
     portfolio.set(tokenAddress, {
       name,
+      ticker,
       image,
       amount,
       usdValue,

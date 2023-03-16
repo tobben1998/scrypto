@@ -33,8 +33,8 @@ export function getFundPortfolio(fundAddress) {
 
   for (const [tokenAddress, usdValue] of portfolio) {
     const percentage = (usdValue / totalUsdValue) * 100;
-    const { name, image } = tokensInfo.get(tokenAddress);
-    portfolio.set(tokenAddress, { name, image, percentage });
+    const { name, ticker, image } = tokensInfo.get(tokenAddress);
+    portfolio.set(tokenAddress, { name, ticker, image, percentage });
   }
 
   return portfolio;

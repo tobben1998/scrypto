@@ -7,19 +7,31 @@ export const xrdAddr =
 export const tokensInfo = new Map([
   [
     "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp",
-    { name: "Radix", image: "https://example.com/token1.png" },
+    { name: "Radix", ticker: "XRD", image: "https://example.com/token1.png" },
   ],
   [
     "resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah",
-    { name: "Beta Usd", image: "https://example.com/token2.png" },
+    {
+      name: "Beta Usd",
+      ticker: "BUSD",
+      image: "https://example.com/token2.png",
+    },
   ],
   [
     "resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp",
-    { name: "Wrapped Ether", image: "https://example.com/token3.png" },
+    {
+      name: "Wrapped Ether",
+      ticker: "WETH",
+      image: "https://example.com/token3.png",
+    },
   ],
   [
     "resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r",
-    { name: "Wrapped Bitcoin", image: "https://example.com/token2.png" },
+    {
+      name: "Wrapped Bitcoin",
+      ticker: "WBTC",
+      image: "https://example.com/token2.png",
+    },
   ],
 ]);
 
@@ -331,64 +343,3 @@ export async function getRatios(FundAddress) {
   }
   return ratios;
 }
-
-//////////////////////////////////////////
-////////////// non finished stuff ////////
-//////////////////////////////////////////
-
-//Simple function that does not care about slippage
-//need to make a maximation function that uses liquidity in the pool to calculate what the ratio shoudl be.
-
-//   //må finne en constrained optimalization algorithm som fungerer.
-//   //denne fungerer ikke er bare inpirasjon fra chatgpt
-//   export function getOptimizedRatios(amount, x, y, addresses, fundaddress) {
-//     const fm = 1; //fee multiplier 1=no fee, 0=100% fee
-//     const n = x.length;
-
-//     //calculate the fund ratio
-//     const reserveAmounts = fetchFundAmounts(fundaddress);
-//     const prices = x.map((_, i) => x[i] / y[i]);
-//     const values = prices.map((price, i) => price * reserveAmounts[addresses[i]]);
-//     const totalValue = values.reduce((total, value) => total + value, 0);
-//     const p = values.map((value) => value / totalValue); //perfect fund ratio. The ratio without slippage.
-//     // Define the objective function
-//     //r=ratio I will input when slippage is considered
-//     //p=perfect fund ratio
-//     //(dy1*price1/totalAmount)-p1)
-//     //dy=(r*dx*y)/(x-r*dx)
-//     //price1=y1*dx1/x1
-//     //r=totalAmount*y1*y1*dx1*dx1/((x1+dx1)*x1)
-//     //minimize sqrt(abs(r1-p1)+..+sqrt(abs(rn-pn))
-//     const f = (v) => {
-//       const dx = v.slice(0, n);
-//       const sumOfSquareRoots = p.reduce(
-//         (a, b, i) =>
-//           a +
-//           Math.sqrt(
-//             Math.abs(
-//               (amount * fm * y[i] * y[i] * dx[i] * dx[i]) /
-//                 ((x[i] + fm * dx[i]) * x[i]) -
-//                 b
-//             )
-//           ),
-//         0
-//       );
-//       return sumOfSquareRoots;
-//     };
-
-//     // Define the constraint: the sum of the dx values must be equal to the input amount
-//     const constraint = (v) => {
-//       return v.slice(0, n).reduce((a, b) => a + b, 0) - amount;
-//     };
-
-//     // Solve the constrained optimization problem using the Newton-Raphson algorithm
-//     const solution = Solve(f, constraint, Array(n + 1).fill(0), {
-//       method: "newton",
-//     });
-
-//     // Extract the solution
-//     const dx = solution.x.slice(0, n);
-//     const r = dx.map((_, i) => [addresses[i], dx[i] / amount]);
-
-//     return r;
-//   }
