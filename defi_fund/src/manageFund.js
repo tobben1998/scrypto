@@ -1,4 +1,5 @@
 import {
+  tokensInfo,
   getFundAmounts,
   getFundTvl,
   getFunds,
@@ -6,6 +7,8 @@ import {
   getShareTokenAddress,
   getShareTokenAmount,
   getTokenPrice,
+  getFundName,
+  getFundImage,
 } from "./apiDataFetcher";
 
 //NB! call updatefunctions in apiDataFecther before you use these
@@ -15,7 +18,12 @@ export function getFundManagerFunds() {
   const funds = getFunds();
   const tokens = getTokensInWallet();
   const matchingFunds = funds.filter((fund) => tokens.has(fund[1]));
-  return matchingFunds.map((fund) => fund[0]);
+  const fundInfo = new Map();
+  for (const fund of matchingFunds) {
+    const fundAddr = fund[0];
+    fundInfo.set(fundAddr, [getFundName(fundAddr), getFundImage(fundAddr)]);
+  }
+  return fundInfo;
 }
 
 export function getYourShareAndTvl(fundAddress) {
@@ -35,8 +43,13 @@ export function getManageFundPortfolio(fundAddress) {
   const portfolio = new Map();
   for (const [tokenAddress, amount] of fundAmounts) {
     const usdValue = getTokenPrice(tokenAddress) * amount;
+    const { name, image } = tokensInfo.get(tokenAddress);
+
     totalUsdValue += usdValue;
+
     portfolio.set(tokenAddress, {
+      name,
+      image,
       amount,
       usdValue,
     });

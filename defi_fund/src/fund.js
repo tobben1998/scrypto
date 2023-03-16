@@ -5,6 +5,7 @@ import {
   getTokensInWallet,
   getFundAmounts,
   getTokenPrice,
+  tokensInfo,
 } from "./apiDataFetcher";
 
 //NB! call updatefunctions in apiDataFecther before you use these
@@ -32,7 +33,8 @@ export function getFundPortfolio(fundAddress) {
 
   for (const [tokenAddress, usdValue] of portfolio) {
     const percentage = (usdValue / totalUsdValue) * 100;
-    portfolio.set(tokenAddress, percentage);
+    const { name, image } = tokensInfo.get(tokenAddress);
+    portfolio.set(tokenAddress, { name, image, percentage });
   }
 
   return portfolio;

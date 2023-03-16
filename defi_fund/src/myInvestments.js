@@ -49,7 +49,6 @@ export function getPortfolio() {
     const shareTokenAddress = fund[0];
     const amount = fund[1];
     const fundAddress = fund[2];
-    //console.log(fundAddress);
     const fundName = getFundName(fundAddress);
     const imageLink = getFundImage(fundAddress);
     const price = getFundPrice(fundAddress);

@@ -15,7 +15,7 @@ import axios from "axios";
 import { accountAddress, sendManifest, showReceipt } from "./radixConnect.js";
 import {
   fetchPoolInfo,
-  addr,
+  xrdAddr,
   getRatios,
   getTokenPrices,
   getFunds,
@@ -106,8 +106,8 @@ document.getElementById("btnNewFund").onclick = async function () {
   let imagelink = document.getElementById("inpNewFundImageLink").value;
   let websitelink = document.getElementById("inpNewFundWebsiteLink").value;
   let manifest = new ManifestBuilder()
-    .withdrawFromAccountByAmount(accountAddress, initialSupply, addr.XRD)
-    .takeFromWorktopByAmount(initialSupply, addr.XRD, "xrd_bucket")
+    .withdrawFromAccountByAmount(accountAddress, initialSupply, xrdAddr)
+    .takeFromWorktopByAmount(initialSupply, xrdAddr, "xrd_bucket")
     .callMethod(DefiFundsComponentAddress, "new_fund", [
       String(fundName),
       Bucket("xrd_bucket"),
@@ -331,7 +331,7 @@ document.getElementById("btnWithdraw").onclick = async function () {
     ])
     .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     ///////////////////////////////////////////////////////////
-    // .withdrawFromAccountByAmount(accountAddress, amount, addr.XRD)
+    // .withdrawFromAccountByAmount(accountAddress, amount, xrdAddr)
     // .callMethod(FundComponentAddress, "swap_tokens_for_token", [
     //   Expression("ENTIRE_WORKTOP"),
     //   ResourceAddress(address),

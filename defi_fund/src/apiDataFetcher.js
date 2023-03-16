@@ -1,12 +1,27 @@
 import axios from "axios";
 import { DefiFundsComponentAddress } from "./index.js";
 
-export const addr = {
-  XRD: "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp",
-  BUSD: "resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah",
-  WETH: "resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp",
-  WBTC: "resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r",
-};
+export const xrdAddr =
+  "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp";
+
+export const tokensInfo = new Map([
+  [
+    "resource_tdx_b_1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8z96qp",
+    { name: "Radix", image: "https://example.com/token1.png" },
+  ],
+  [
+    "resource_tdx_b_1qpev6f8v2su68ak5p2fswd6gqml3u7q0lkrtfx99c4ts3zxlah",
+    { name: "Beta Usd", image: "https://example.com/token2.png" },
+  ],
+  [
+    "resource_tdx_b_1qps68awewmwmz0az7cxd86l7xhq6v3pez355wq8gra3qw2v7kp",
+    { name: "Wrapped Ether", image: "https://example.com/token3.png" },
+  ],
+  [
+    "resource_tdx_b_1qre9sv98scqut4k9g3j6kxuvscczv0lzumefwgwhuf6qdu4c3r",
+    { name: "Wrapped Bitcoin", image: "https://example.com/token2.png" },
+  ],
+]);
 
 // all funds in defifunds array each element consists off (fundAddr, shartokenAddr, fundManagerBage)
 let funds = [];
@@ -91,24 +106,23 @@ export async function fetchFungibleTokens(address) {
 }
 
 export async function fetchAllTokenPricesXrd() {
-  //fetch prices in paralell
-  const promises = Object.entries(addr)
-    .filter(([tokenSymbol, tokenAddress]) => tokenSymbol !== "XRD")
-    .map(([tokenSymbol, tokenAddress]) =>
-      fetchPoolInfo(tokenAddress, addr.XRD).then((data) => ({
+  // fetch all prices in paralell
+  const promises = [];
+  tokensInfo.forEach((tokenInfo, tokenAddress) => {
+    if (tokenAddress !== xrdAddr) {
+      const promise = fetchPoolInfo(tokenAddress, xrdAddr).then((data) => ({
         tokenAddress,
         price: data[1] / data[0],
-      }))
-    );
-
+      }));
+      promises.push(promise);
+    }
+  });
   const results = await Promise.all(promises);
-
   const prices = {};
-  for (const { tokenAddress, price } of results) {
+  results.forEach(({ tokenAddress, price }) => {
     prices[tokenAddress] = price;
-  }
-  prices[addr.XRD] = 1;
-
+  });
+  prices[xrdAddr] = 1;
   return prices;
 }
 
