@@ -21,7 +21,12 @@ export function getFundManagerFunds() {
   const fundInfo = new Map();
   for (const fund of matchingFunds) {
     const fundAddr = fund[0];
-    fundInfo.set(fundAddr, [getFundName(fundAddr), getFundImage(fundAddr)]);
+    const fundManagerBage = fund[1];
+    fundInfo.set(fundAddr, [
+      getFundName(fundAddr),
+      getFundImage(fundAddr),
+      fundManagerBage,
+    ]);
   }
   return fundInfo;
 }

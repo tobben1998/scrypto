@@ -204,6 +204,12 @@ export function getFundInfo(fundAddress) {
   return fundsInfo.get(fundAddress) || null;
 }
 
+export function getTokenAmount(tokenAddress) {
+  const tokensInWallet = getTokensInWallet(tokenAddress);
+  const tokenAmount = tokensInWallet.get(tokenAddress) ?? 0;
+  return tokenAmount;
+}
+
 export function getFundName(fundAddr) {
   return getFundInfo(fundAddr)[0];
 }
@@ -245,6 +251,12 @@ export function getShareTokenAmount(fundAddr) {
 
 export function getDepositFee(fundAddr) {
   return getFundInfo(fundAddr)[10];
+}
+
+export function getFundTokenAmount(fundAddr, tokenAddr) {
+  const fundAmounts = getFundAmounts(fundAddr);
+  const tokenAmount = fundAmounts.get(tokenAddr) ?? 0;
+  return tokenAmount;
 }
 
 export function getFundTvl(FundAddress) {
