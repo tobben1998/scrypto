@@ -35,6 +35,7 @@ import {
   getFundPortfolio,
   //getYourShareAndTvl,
 } from "./fund.js";
+//import { getMultiplePriceData } from "./readDB.js";
 
 // Global states
 export let DefiFundsComponentAddress =
@@ -53,21 +54,26 @@ document.getElementById("test").onclick = async function () {
   await updateAll(
     "account_tdx_b_1prtyyczzd3fhmrt39fwhtvel9gjhe0ghmane94sfqhyq57045z"
   );
-  console.log(getTokenPrices());
-  console.log(getFunds());
-  console.log(getFundsInfo());
-  console.log(getTokensInWallet());
-  console.log(getSharetokensWallet());
-  console.log(getPortfolio());
-  console.log(getFundManagerFunds());
   const selectedFund =
     "component_tdx_b_1q2cumvgvegl4lt9natpzldcz9wnuhh59pu4md5wdj0msl48ad5";
-  console.log(getYourShareAndTvl(selectedFund));
-  console.log(getManageFundPortfolio(selectedFund));
-  console.log(getYourShareAndTvl(selectedFund));
-  console.log(getFundPortfolio(selectedFund));
-  console.log(getFundTokenAmount(selectedFund, xrdAddr));
-  console.log(getTokenAmount(xrdAddr));
+
+  console.log(
+    "NB! Accountaddress and Fundaddress is hardcoded in the index.js file. Chnage there if you want to see your own."
+  );
+  console.log("getTokenPrices:", getTokenPrices());
+  console.log("getFunds", getFunds());
+  console.log("getFundsInfo", getFundsInfo());
+  console.log("getTokensInWallet", getTokensInWallet());
+  console.log("getSharetokensWallet", getSharetokensWallet());
+  console.log("getPortfolio", getPortfolio());
+  console.log("getFundManagerFunds", getFundManagerFunds());
+
+  console.log("getYourShareAndTvl", getYourShareAndTvl(selectedFund));
+  console.log("getManageFundPortfolio", getManageFundPortfolio(selectedFund));
+  console.log("getYourShareAndTvl", getYourShareAndTvl(selectedFund));
+  console.log("getFundPortfolio", getFundPortfolio(selectedFund));
+  console.log("getFundTokenAmount", getFundTokenAmount(selectedFund, xrdAddr));
+  console.log("getTokenAmount", getTokenAmount(xrdAddr));
 };
 
 // ************************************
@@ -336,14 +342,11 @@ document.getElementById("btnWithdraw").onclick = async function () {
     .callMethod(FundComponentAddress, "withdraw_tokens_from_fund", [
       Bucket("bucket"),
     ])
-    .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
-    ///////////////////////////////////////////////////////////
-    // .withdrawFromAccountByAmount(accountAddress, amount, xrdAddr)
     // .callMethod(FundComponentAddress, "swap_tokens_for_token", [
     //   Expression("ENTIRE_WORKTOP"),
     //   ResourceAddress(address),
     // ])
-    // .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
+    .callMethod(accountAddress, "deposit_batch", [Expression("ENTIRE_WORKTOP")])
     .build()
     .toString();
 
