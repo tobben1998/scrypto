@@ -7,11 +7,9 @@ import {
 } from "./apiData.js";
 
 import { MongoClient } from "mongodb";
-import { config } from "dotenv";
-config();
 
-const username = process.env.USERNAME;
-const password = process.env.PASSWORD;
+const username = "";
+const password = "";
 const uri = `mongodb+srv://${username}:${password}@cluster0.ss8pcty.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri);
 

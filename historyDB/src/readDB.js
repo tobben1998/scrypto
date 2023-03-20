@@ -1,6 +1,4 @@
 import { MongoClient } from "mongodb";
-import { config } from "dotenv";
-config();
 
 //readOnlyUser. Feel free to use it, but please do not spam
 const username = "DefiFundsRead";
@@ -131,7 +129,7 @@ const shareTokenAddress1 =
 const shareTokenAddress2 =
   "resource_tdx_b_1qqnldn0qvffwfye5r84ucjm0v7plcdtnczdm9ljatpyshyr0et";
 const addresses = [shareTokenAddress, shareTokenAddress1, shareTokenAddress2];
-const startDate = "2023-03-17T14:00";
+const startDate = "2023-03-18T14:00";
 const endDate = new Date();
 const graphData = await getGraphData(shareTokenAddress, startDate, endDate);
 const result = await getMultiplePriceData(addresses, startDate, endDate);
