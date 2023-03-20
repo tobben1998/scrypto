@@ -1,4 +1,10 @@
-# DefiFunds on Betanet V\2
+# DefiFunds on Betanet V2
+
+This is a proof-of-concept dapp that lets you manage or invest in a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also invest in a fund that someone else has created. The fundmanager will then do the trading for you. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fundmanager. He has never access to withdraw your funds.
+
+The dapp is still under development so when testing out this dapp the UI will be very poor. If you want to see how it should look like when it is finished you can check out this [link](https://www.figma.com/file/dxSKJUxvfyQ3e2wKqYOtJT/Tobias_eth?node-id=0%3A1&t=imOUxtVIg1waaQtM-1)
+
+I am building this dapp for my master theis, and hopes to have the dapp ready it ready when smartcontracts go live on mainnet. I also wrote about this dapp in my specilization project, so feel free to read the [pdf](https://github.com/tobben1998/scrypto/blob/master/defi_fund/DefiFunds_-_A_proof_of_concept_Dapp_built_on_Radix.pdf)
 
 ## Pre-requisites
 
@@ -21,19 +27,19 @@ If you want to test being a fundmanager you can create a new fund using the new 
 
 ### Choose what fund you interact on
 
-Scroll down to "Get Funds in DefiFunds" press the get button to see all the created funds.
-Select the fund you want to interact on by setting Fund, fundManger and Sharetoken.
+Scroll down to "Get Funds in DefiFunds". Press the get button to see all the created funds.
+Select the fund you want to interact on by setting Fund, FundManger and Sharetoken.
 
 ### Trade Beakerfi
 
-This method is only for the fundmanger. When you use this method you will trade with the tokens in the fund.
-Select the amount you want to trade. The token you want to trade from, and the pool you want to trade with. You trade using the pools from https://beaker.fi/
+This method is only for the fundmanager. When you use this method you will trade with the tokens in the fund.
+Select the amount you want to trade. The token you want to trade from, and the pool you want to trade with. You will trade using the pools from beaker.fi
 
 ### Deposit tokens to fund
 
-If you want to buy part of a fund you can call this method. The method will buy up tokens equal to the ratio in the fund using the beaker.fi and depsoit those tokens into the fund.
-You will recive sharetokens in retunrn
+If you want to buy part of a fund you can call this method. The method will buy up tokens equal to the ratio in the fund using beaker.fi, and depsoit those tokens into the fund.
+You will recive sharetokens in return.
 
-### Whitdraw tokens from fund
+### Withdraw tokens from fund
 
-When you want to sell you share of the fund you can use this method. By calling this method you will take out your share of all the different tokens, and then use beaker.fi to swap those tokens into the specific token you want.
+When you want to sell you share of the fund you can use this method. By calling this method you will take out your share of all the different tokens in the fund, and then use beaker.fi to swap those tokens into the specific token you want.
