@@ -1,6 +1,5 @@
-# DefiFunds on Betanet V2
-
 ![DefiFunds Logo](./logo.png "DefiFunds")
+# DefiFunds on Betanet V2
 
 This is a proof-of-concept dapp that lets you manage or invest in a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also invest in a fund that someone else has created. The fund manager will then do the trading for you. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fund manager. He has never access to withdraw your funds.
 
