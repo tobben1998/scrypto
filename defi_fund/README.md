@@ -1,12 +1,19 @@
 ![DefiFunds Logo](./logo.png "DefiFunds")
 # DefiFunds on Betanet V2
 
-This is a proof-of-concept dapp that lets you manage or invest in a fund. As a fund manager, you will be able to trade cryptocurrencies and collect a fee from those who want to join your fund. If you do not want to create a fund, you can also invest in a fund that someone else has created. The fund manager will then do the trading for you. You do not need to trust the fund manager to hold your funds. They are kept securely in a vault and can only be traded with whitelisted tokens by the fund manager. He has never access to withdraw your funds.
+DefiFunds is a decentralized application focused on providing a straightforward and secure way for users to invest in cryptocurrency funds. The primary goal is to streamline the process of investing in decentralized finance by connecting individuals with skilled fund managers. Currently, investing in cryptocurrency can be a challenging and complex process. DefiFunds aims to simplify this aspect, making it easier for everyone to participate in the world of decentralized finance.
 
-The dapp is still under development, so when testing out this dapp the UI will be very poor. If you want to see how it should look like when it is finished you can check out this [link](https://www.figma.com/file/dxSKJUxvfyQ3e2wKqYOtJT/Tobias_eth?node-id=0%3A1&t=imOUxtVIg1waaQtM-1)
+### Key features of DefiFunds:
+1. Effortless Investing: 
+A user-friendly platform that allows users to easily invest in a fund without needing to trade themselves, leveraging the expertise of experienced fund managers to handle the trading process.
+2. Trustless System:
+Assets are securely held in a vault, ensuring that only the investor has the ability to withdraw their share of the fund. Neither the fund manager nor the creators of DefiFunds can access these funds, fostering a trustless environment that offers peace of mind to users while investing in cryptocurrency funds.
 
-I am building this dapp for my master's thesis and hope to have the dapp ready when smart contracts go live on mainnet. I also wrote about this dapp in my specialization project, so feel free to read the [pdf](https://github.com/tobben1998/scrypto/blob/master/defi_fund/DefiFunds_-_A_proof_of_concept_Dapp_built_on_Radix.pdf)
+The dapp is currently under development, and as a result, the user interface is very poor when testing. To get a glimpse of the intended final design, visit this [link](https://www.figma.com/file/dxSKJUxvfyQ3e2wKqYOtJT/Tobias_eth?node-id=0%3A1&t=imOUxtVIg1waaQtM-1). 
 
+DefiFunds is also being developed as a part of my master's thesis, with the goal of having it ready for use when smart contracts go live on mainnet. Last semester I wrote about this dapp in my specialization project, which you can find by following this [link](https://github.com/tobben1998/scrypto/blob/master/defi_fund/DefiFunds_-_A_proof_of_concept_Dapp_built_on_Radix.pdf)
+
+# Test DefiFunds locally
 ## Pre-requisites
 
 1. Node >= 12.17.0
@@ -14,13 +21,16 @@ I am building this dapp for my master's thesis and hope to have the dapp ready w
 
 ## Interacting with DeFiFunds
 
-1. In a terminal go to the to the root of this project (defi_fund)
-2. Install the npm dependencies: `npm install`
-3. Start the local server with `npm start`
-4. Open up your browser at the provided url if it doesn't open automatically.
-5. Make sure you created an account on the wallet and added funds via the faucet by clicking on account name and then the three dots a button to get XRD from faucet should open.
-6. Click on the connect button to fetch your wallet address. Confirm login with your phone. You should see your address appearing.
-7. You can now start testing the different functions and methods on the blueprint
+1. Clone this github repo
+2. In a terminal go to the to the "defi_fund" folder
+3. Install the npm dependencies: `npm install`
+4. Start the local server with `npm start`
+5. Open up your browser at the provided url if it doesn't open automatically.
+6. Make sure you created an account on the wallet and added funds via the faucet by clicking on account name and then the three dots a button to get XRD from faucet should open.
+7. Click on the connect button to fetch your wallet address. Confirm login with your phone. You should see your address appearing.
+8. You can now start testing the different functions and methods on the blueprint
+
+## The Basics
 
 ### New Fund
 
