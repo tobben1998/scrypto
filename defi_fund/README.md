@@ -27,7 +27,7 @@ DefiFunds is also being developed as a part of my master's thesis, with the goal
 4. Start the local server with `npm start`
 5. Open up your browser at the provided url if it doesn't open automatically.
 6. Make sure you created an account on the wallet and added funds via the faucet by clicking on account name and then the three dots a button to get XRD from faucet should open.
-7. Click on the connect button to fetch your wallet address. Confirm login with your phone. You should see your address appearing.
+7. Click on the connect button to fetch your wallet address. Confirm login with your phone. You should see your address appearing. (If you don't see the connect button try refreshing the page.)
 8. You can now start testing the different functions and methods on the blueprint
 
 ## The Basics
