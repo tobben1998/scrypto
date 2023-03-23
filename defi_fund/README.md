@@ -7,7 +7,7 @@ DefiFunds is a decentralized application focused on providing a straightforward 
 1. Effortless Investing: 
 A user-friendly platform that allows users to easily invest in a fund without needing to trade themselves, leveraging the expertise of experienced fund managers to handle the trading process.
 2. Trustless System:
-Assets are securely held in a vault, ensuring that only the investor has the ability to withdraw their share of the fund. Neither the fund manager nor the creators of DefiFunds can access these funds, fostering a trustless environment that offers peace of mind to users while investing in cryptocurrency funds.
+Assets are securely held in a vault protected by a smart contract. The smart contract ensures that only the investor has the ability to withdraw their share of the fund. No one else, including the fund manager and the creators of DefiFunds, are able to withdraw that share of the fund.
 
 The dapp is currently under development, and as a result, the user interface is very poor when testing. To get a glimpse of the intended final design, visit this [link](https://www.figma.com/file/dxSKJUxvfyQ3e2wKqYOtJT/Tobias_eth?node-id=0%3A1&t=imOUxtVIg1waaQtM-1). 
 
