@@ -82,7 +82,7 @@ mod nfts {
         //buy from the component, make this random and so you cant se output
         pub fn buy_nft(
             &mut self,
-            key: NonFungibleLocalId,
+            key: u64,
             mut payment: FungibleBucket,
         ) -> (NonFungibleBucket, FungibleBucket) {
 
@@ -92,7 +92,8 @@ mod nfts {
             self.collected_crypto.put(payment.take(self.nft_price)); // get paid
 
             // Take the requested NFT
-            let nft = self.nfts.take_non_fungible(&key);
+            let id: NonFungibleLocalId = key.into();
+            let nft = self.nfts.take_non_fungible(&id);
 
             // Return the NFT and change
             (nft, payment)

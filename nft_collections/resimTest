@@ -11,3 +11,8 @@ resim call-method $comp mint_nft
 resim call-method $comp mint_nft
 resim call-method $comp mint_nft
 
+
+
+
+not working in resim  resim call-method $comp buy_nft 2 "15,resource_sim1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxakj8n3"
+
