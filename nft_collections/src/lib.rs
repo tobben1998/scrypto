@@ -4,19 +4,33 @@
 
 use scrypto::prelude::*;
 
-#[derive(ScryptoSbor)]
-pub enum Rarity {
-    Common,
-    Rare,
-    MythicRare,
-}
 
 #[derive(NonFungibleData, ScryptoSbor)]
-pub struct Nft {
+pub struct NftData {
+    clothes: String,
+    eyes: String,
+    mouth: String,
+    ears: String,
+    tail: String,
+    hats: String,
+    fur: String,
+    hand: String,
+    background: String,
     key_image_url: Url,
-    rarity: Rarity,
-    level: u8,
+    nft_storage: Url,
 }
+
+#[derive(FungibleData, ScryptoSbor)]
+pub struct CollectionData{
+    name: String,
+    description: String,
+    tags: Vec<String>,
+    icon_url: String,
+    info_url: String,
+    royalty: Decimal
+}
+
+
 
 #[blueprint]
 mod nfts {
@@ -32,7 +46,16 @@ mod nfts {
     }
 
     impl NftCollection {
-        pub fn instantiate_component(name: String, price: Decimal, number_of_nfts: u32) -> (Global<NftCollection>, FungibleBucket) {
+        pub fn instantiate_component(
+            name: String,
+            description: String,
+            tags: Vec<String>,
+            icon_url: String,
+            info_url: String,
+            royalty: Decimal,
+            number_of_nfts: u32,
+            price: Decimal
+        ) -> (Global<NftCollection>, FungibleBucket) {
 
             let admin_badge = ResourceBuilder::new_fungible(OwnerRole::None)
                 .divisibility(DIVISIBILITY_NONE)
@@ -43,15 +66,15 @@ mod nfts {
                 .mint_initial_supply(1);
 
             let nft =
-                ResourceBuilder::new_integer_non_fungible::<Nft>(OwnerRole::None)
+                ResourceBuilder::new_integer_non_fungible::<NftData>(OwnerRole::None)
                 .metadata(metadata!(
                     init {
                         "name" => name, locked;
-                        // "description" => description, locked; //string
-                        // "tags" => collection_name, ; //vec<string>
-                        // "icon_url" => icon_url; //url
-                        // "info_url" => info_url; //url
-                        // "royalities" => royalities; //what is the standard, just as metadata, or withdraw rules?
+                        "description" => description, locked; //string
+                        "tags" => tags, updatable; //vec<string>
+                        "icon_url" => icon_url, updatable; //url
+                        "info_url" => info_url, updatable; //url
+                        "royalty" => royalty, locked; //what is the standard, just as metadata, or withdraw rules?
                     }
                 ))
                 .mint_roles(mint_roles!(
@@ -82,7 +105,7 @@ mod nfts {
         //buy from the component, make this random and so you cant se output
         pub fn buy_nft(
             &mut self,
-            key: u64,
+            key: NonFungibleLocalId,
             mut payment: FungibleBucket,
         ) -> (NonFungibleBucket, FungibleBucket) {
 
@@ -92,29 +115,37 @@ mod nfts {
             self.collected_crypto.put(payment.take(self.nft_price)); // get paid
 
             // Take the requested NFT
-            let id: NonFungibleLocalId = key.into();
-            let nft = self.nfts.take_non_fungible(&id);
+            let nft = self.nfts.take_non_fungible(&key);
 
             // Return the NFT and change
             (nft, payment)
         }
 
         //make input parameteers here for metadata
-        pub fn mint_nft(&mut self){
+        pub fn mint_nft(&mut self, nftdata: NftData){
 
             let nft_bucket = self.nft_manager.mint_non_fungible(
-                &NonFungibleLocalId::integer(self.nft_id_counter),
-                Nft {
-                    rarity: Rarity::Common,
-                    level: 1,
+                &NonFungibleLocalId::integer(self.nft_id_counter),nftdata,
+/*                 NftData {
+                    clothes: "hoody with headset",
+                    eyes: "happy with glasses",
+                    mouth: smile with ball,
+                    ears: normal with earpods,
+                    tail: normal,
+                    hats: bucket,
+                    fur: yellow,
+                    hand: coffe,
+                    background: blue,
+                    nft_storage: Url::of("https://google.com"),
                     key_image_url: Url::of("https://pyro-public.s3.eu-central-1.amazonaws.com/collections/1/JPG_640px/Pyro_2.jpg")
-                },
+                }, */
             ).as_non_fungible();
 
             self.nfts.put(nft_bucket);//puts into the nft vault
 
             self.nft_id_counter += 1;
             if self.nft_id_counter >= self.number_of_nfts.into(){ //only x is mintable 0,...,x-1
+                self.nft_manager.set_mintable(AccessRule::DenyAll);
                 self.nft_manager.lock_mintable();
             }
         }

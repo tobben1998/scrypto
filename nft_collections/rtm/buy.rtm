@@ -1,0 +1,26 @@
+CALL_METHOD
+    Address("${acc1}")
+    "lock_fee"
+    Decimal("100")
+;
+CALL_METHOD
+    Address("${acc1}")
+    "withdraw_by_amount"
+    Decimal("100")
+    Address("resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc")
+;
+TAKE_ALL_FROM_WORKTOP
+    Address("resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc")
+    Bucket("bucket1")
+;
+CALL_METHOD
+    Address("${comp}")
+    "buy_nft"
+    NonFungibleLocalId("#0#")
+    Bucket("bucket1")
+;
+CALL_METHOD
+    Address("${acc1}")
+    "deposit_batch"
+    Expression("ENTIRE_WORKTOP")
+;
