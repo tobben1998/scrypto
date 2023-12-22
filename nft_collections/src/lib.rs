@@ -22,7 +22,13 @@ pub struct NftData {
 
 #[blueprint]
 mod nfts {
-
+    enable_method_auth! {
+        methods {
+            buy_nft => PUBLIC;
+            mint_nft => PUBLIC; //=> restrict_to: [OWNER];
+            collected_crypto => PUBLIC; //=> restrict_to: [OWNER];
+        }
+    }
     struct NftCollection {
         nfts: NonFungibleVault, //a vault that holds all the nfts
         nft_price: Decimal, // the price for an nft
@@ -49,19 +55,21 @@ mod nfts {
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata(metadata!(
                     init {
-                        "name" => "nftAdminBadge", locked;
+                        "name" => format!("{} admin badge", name), locked;
                     }))
                 .mint_initial_supply(1);
 
             let nft =
-                ResourceBuilder::new_integer_non_fungible::<NftData>(OwnerRole::None)
+                ResourceBuilder::new_integer_non_fungible::<NftData>(OwnerRole::Fixed(
+                    rule!(require(admin_badge.resource_address()))
+                ))
                 .metadata(metadata!(
                     init {
                         "name" => name, locked;
-                        "description" => description, locked; //string
-                        "tags" => tags, updatable; //vec<string>
-                        "icon_url" => Url::of(icon_url), updatable; //url
-                        "info_url" => Url::of(info_url), updatable; //url
+                        "description" => description, locked;
+                        "tags" => tags, updatable; 
+                        "icon_url" => Url::of(icon_url), updatable;
+                        "info_url" => Url::of(info_url), updatable;
                         "royalty" => royalty, locked; //NB!!!!what is the standard, just as metadata, or withdraw rules?
                     }
                 ))
@@ -83,7 +91,11 @@ mod nfts {
                 admin_badge: admin_badge.resource_address(), 
             }
             .instantiate()
-            .prepare_to_globalize(OwnerRole::None)
+            .prepare_to_globalize(
+                OwnerRole::Fixed(
+                    rule!(require(admin_badge.resource_address())
+                )
+            ))
             .globalize();
             (component, admin_badge)
         }
@@ -135,6 +147,10 @@ mod nfts {
                 self.nft_manager.set_mintable(AccessRule::DenyAll);
                 self.nft_manager.lock_mintable();
             }
+        }
+
+        pub fn collected_crypto(&mut self) -> FungibleBucket {
+            self.collected_crypto.take_all()
         }
     }
 }
