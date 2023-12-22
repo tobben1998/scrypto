@@ -1,8 +1,8 @@
 //stuff to add
 //not only xrd, but other crypots aswell to be more general
-//delte the first inital supply, just need a way to create a new vault withou the bucket fucntion, cant figure out new beacuse need a resource address
 
 use scrypto::prelude::*;
+use random::Random; 
 
 
 #[derive(NonFungibleData, ScryptoSbor)]
@@ -22,11 +22,30 @@ pub struct NftData {
 
 #[blueprint]
 mod nfts {
+    // extern_blueprint!(
+    //     // "package_tdx_2_1p527rqesssgtadvr23elxrnrt6rw2jnfa5ke8n85ykcxmvjt06cvv6",
+    //     "package_sim1p5qqqqqqqyqszqgqqqqqqqgpqyqsqqqqxumnwqgqqqqqqycnnzj0hj",
+    //     MyRandom as RandomComponent {
+    //         fn request_random(&self, address: ComponentAddress, method_name: String, on_error: String,
+    //             key: u32, badge_opt: Option<FungibleBucket>, expected_fee: u8) -> u32;
+
+    //     }
+    // );
+    // const RNG: Global<RandomComponent> = global_component!(
+    //     RandomComponent,
+    //     // "component_tdx_2_1czzxynn4m4snhattvdf6knlyfs3ss70yufj975uh2mdhp8jes938sd"
+    //     "component_sim1cqqqqqqqqyqszqgqqqqqqqgpqyqsqqqqxumnwqgqqqqqqycnf7v0gx"
+    // );
+
     enable_method_auth! {
         methods {
             buy_nft => PUBLIC;
             mint_nft => PUBLIC; //=> restrict_to: [OWNER];
             collected_crypto => PUBLIC; //=> restrict_to: [OWNER];
+            request_random_buy => PUBLIC; //
+            do_buy => PUBLIC; //fails if badge not give through bucket. called by RandomComponent
+            abort_buy => PUBLIC; //fails if badge not give through bucket. called by RandomComponent
+
         }
     }
     struct NftCollection {
@@ -37,6 +56,8 @@ mod nfts {
         collected_crypto: FungibleVault, //A vault that collects all xrd payments
         number_of_nfts: u32,
         admin_badge: ResourceAddress,
+        sold_nfts: u32,
+        buying_badge_vault: Vault,
     }
 
     impl NftCollection {
@@ -51,13 +72,26 @@ mod nfts {
             price: Decimal
         ) -> (Global<NftCollection>, FungibleBucket) {
 
+
             let admin_badge = ResourceBuilder::new_fungible(OwnerRole::None)
                 .divisibility(DIVISIBILITY_NONE)
                 .metadata(metadata!(
                     init {
                         "name" => format!("{} admin badge", name), locked;
                     }))
-                .mint_initial_supply(1);
+                .mint_initial_supply(1);  
+            
+            // controls actual buying. should be recallable, non-transferable, etc, but omitted for simplicity
+            let nft_buying_badge: Bucket = ResourceBuilder::new_fungible(OwnerRole::None)
+                .divisibility(DIVISIBILITY_NONE)
+                .metadata(metadata!(
+                    init {
+                        "name" => format!("Buying badge for {}", name), locked;
+                    }
+                ))
+                .mint_initial_supply(1000)
+                .into();
+
 
             let nft =
                 ResourceBuilder::new_integer_non_fungible::<NftData>(OwnerRole::Fixed(
@@ -80,6 +114,7 @@ mod nfts {
                 .create_with_no_initial_supply();
 
 
+
             // Instantiate our component
             let component = Self {
                 nfts: scrypto::prelude::NonFungibleVault(nft.create_empty_vault()),
@@ -88,7 +123,9 @@ mod nfts {
                 nft_id_counter: 0,
                 collected_crypto: FungibleVault::new(XRD),
                 number_of_nfts: number_of_nfts,
-                admin_badge: admin_badge.resource_address(), 
+                admin_badge: admin_badge.resource_address(),
+                sold_nfts: 0, 
+                buying_badge_vault: Vault::with_bucket(nft_buying_badge),
             }
             .instantiate()
             .prepare_to_globalize(
@@ -101,44 +138,9 @@ mod nfts {
         }
 
 
-
-        //buy from the component, make this random and so you can't se output
-        pub fn buy_nft(
-            &mut self,
-            key: NonFungibleLocalId,
-            mut payment: FungibleBucket,
-        ) -> (NonFungibleBucket, FungibleBucket) {
-
-            //let remaining_nfts=self.nfts.non_fungible_local_ids(self.number_of_nfts); //get all ids remaining in the vault
-            //let key=take a random of these nfts
-
-            self.collected_crypto.put(payment.take(self.nft_price)); // get paid
-
-            // Take the requested NFT
-            let nft = self.nfts.take_non_fungible(&key);
-
-            // Return the NFT and change
-            (nft, payment)
-        }
-
-
         pub fn mint_nft(&mut self, nftdata: NftData){
-
             let nft_bucket = self.nft_manager.mint_non_fungible(
                 &NonFungibleLocalId::integer(self.nft_id_counter),nftdata,
-/*                 NftData {
-                    clothes: "hoody with headset",
-                    eyes: "happy with glasses",
-                    mouth: smile with ball,
-                    ears: normal with earpods,
-                    tail: normal,
-                    hats: bucket,
-                    fur: yellow,
-                    hand: coffe,
-                    background: blue,
-                    nft_storage: Url::of("https://google.com"),
-                    key_image_url: Url::of("https://pyro-public.s3.eu-central-1.amazonaws.com/collections/1/JPG_640px/Pyro_2.jpg")
-                }, */
             ).as_non_fungible();
             self.nfts.put(nft_bucket);
 
@@ -152,5 +154,72 @@ mod nfts {
         pub fn collected_crypto(&mut self) -> FungibleBucket {
             self.collected_crypto.take_all()
         }
+
+        //buys a specific NFT
+        pub fn buy_nft(
+            &mut self,
+            key: NonFungibleLocalId,
+            mut payment: FungibleBucket,
+        ) -> (NonFungibleBucket, FungibleBucket) {
+
+            //consume payment
+            self.collected_crypto.put(payment.take(self.nft_price));
+
+            // Take the requested NFT
+            let nft = self.nfts.take_non_fungible(&key);
+
+            // Return the NFT and change
+            (nft, payment)
+        }
+
+        pub fn request_random_buy(&mut self, mut payment: FungibleBucket,) -> FungibleBucket{
+
+            //consume payment
+            self.collected_crypto.put(payment.take(self.nft_price));
+
+            //paramters for request random
+            let address = Runtime::global_component().address(); //this comp address
+            let key:u32 = 0; //dont use it for anything
+            let method_name: String = "do_buy".into(); //name on my method
+            let on_error: String = "abort_buy".into(); //name on my method
+            let badge = self.buying_badge_vault.take(Decimal::ONE); //badge used to protect method calls.
+            // How much you would expect the callback to cost, cents (e.g. test on Stokenet).
+            // It helps to avoid a sharp increase in royalties during the first few invocations of `request_random()`
+            // but is completely optional.
+            let expected_fee = 6u8; // 6 cents = 1 XRD
+            
+            //requests a random number, and this method calls do_buy or abort_buy.
+            //let _callback_id = RNG.request_random(address, method_name, on_error, key, Some(badge.as_fungible()), expected_fee);
+            
+            payment
+        }
+    
+        // called by a RandomWatcher off-ledger service (through [RandomComponent]).
+        pub fn do_buy(&mut self, _nothing: u32, badge: FungibleBucket, random_seed: Vec<u8>)
+        -> NonFungibleBucket {
+
+            //returns the buying badge. Fails if wrong badge
+            assert!(badge.amount() == Decimal::ONE);
+            self.buying_badge_vault.put(badge.into());
+
+            //getting the nft_id from the random seed
+            let mut random: Random = Random::new(&random_seed);
+            let nft_id = random.roll::<u64>(self.number_of_nfts.into());//0...x-1
+
+            ////////////////
+            ///////////////////////
+            //må tenke litt igjenm her fordi nften skal jo ikke returners til den som kaller dette kallet, fordi det er jo en annen, eller blir det riktig likavel. fordi denne bare havner på worktop?
+            self.nfts.take_non_fungible(&nft_id.into())
+        }    
+
+        // called by a RandomWatcher off-ledger service (through [RandomComponent]).
+        pub fn abort_buy(&mut self, _nothing: u32, badge: FungibleBucket){
+
+            //returns the buying badge. Fails if wrong badge
+            assert!(badge.amount() == Decimal::ONE);
+            self.buying_badge_vault.put(badge.into());
+        }
+
+            
     }
 }

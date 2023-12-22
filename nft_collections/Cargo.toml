@@ -7,6 +7,7 @@ resolver = "2"
 [dependencies]
 sbor = { git = "https://github.com/radixdlt/radixdlt-scrypto", tag = "v1.0.1" }
 scrypto = { git = "https://github.com/radixdlt/radixdlt-scrypto", tag = "v1.0.1" }
+random = { git = "https://github.com/dot-random/dot-random", rev = "59ae807", package = "random" }
 
 [dev-dependencies]
 transaction = { git = "https://github.com/radixdlt/radixdlt-scrypto", tag = "v1.0.1" }
