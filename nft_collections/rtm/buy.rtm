@@ -5,18 +5,18 @@ CALL_METHOD
 ;
 CALL_METHOD
     Address("${acc1}")
-    "withdraw_by_amount"
-    Decimal("100")
-    Address("resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc")
+    "withdraw"
+    Address("${xrd}")
+    Decimal("200")
 ;
 TAKE_ALL_FROM_WORKTOP
-    Address("resource_tdx_2_1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxtfd2jc")
+    Address("${xrd}")
     Bucket("bucket1")
 ;
 CALL_METHOD
     Address("${comp}")
     "buy_nft"
-    NonFungibleLocalId("#0#")
+    NonFungibleLocalId("#2#")
     Bucket("bucket1")
 ;
 CALL_METHOD

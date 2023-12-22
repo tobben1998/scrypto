@@ -7,8 +7,13 @@ CALL_FUNCTION
     "NftCollection"
     "instantiate_component"
     "DevDogs"
-    Decimal("10")
-    10u32;
+    "PFP collection for the Radix developer community"
+    Array<String>("PFP","Collection","Developer")
+    "https://pyro-public.s3.eu-central-1.amazonaws.com/collections/1/JPG_640px/Pyro_2.jpg"
+    "https://google.com"
+    Decimal("2.5")
+    10u32
+    Decimal("200");
 CALL_METHOD
     Address("${acc1}")
     "deposit_batch"

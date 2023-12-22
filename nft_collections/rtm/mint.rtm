@@ -1,7 +1,22 @@
 CALL_METHOD
     Address("${acc1}")
     "lock_fee"
-    Decimal("100");
+    Decimal("100")
+;
 CALL_METHOD
     Address("${comp}")
-    "mint_nft";
+    "mint_nft"
+    Tuple(
+        "Hoody",
+        "blue eys with 3D glasses",
+        "smile",
+        "none",
+        "tail1",
+        "none",
+        "light brown",
+        "coffe",
+        "Blue",
+        "https://pyro-public.s3.eu-central-1.amazonaws.com/collections/1/JPG_640px/Pyro_2.jpg",
+        "https://pyro-public.s3.eu-central-1.amazonaws.com/collections/1/JPG_640px/Pyro_2.jpg"
+    )
+;

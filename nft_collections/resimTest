@@ -1,18 +1,19 @@
 resim reset
+export xrd="resource_sim1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxakj8n3"
 op1=$(resim new-account)
 export pk1=$(echo "$op1" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc1=$(echo "$op1" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
-
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
-comp=$(resim call-function $pkg NftCollection instantiate_component "DevDogs" 10 3)
+comp=$(resim run ./rtm/instantiate.rtm)
 export comp=$(echo "$comp" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
-resim call-method $comp mint_nft
-resim call-method $comp mint_nft
-resim call-method $comp mint_nft
 
 
+resim run ./rtm/mint.rtm
+resim run ./rtm/mint.rtm
+resim run ./rtm/mint.rtm
 
+#chnage number in file to decide which one you wan to buy
+resim run ./rtm/buy.rtm
 
-not working in resim  resim call-method $comp buy_nft 2 "15,resource_sim1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxakj8n3"
 

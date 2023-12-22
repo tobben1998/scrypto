@@ -20,18 +20,6 @@ pub struct NftData {
     nft_storage: Url,
 }
 
-#[derive(FungibleData, ScryptoSbor)]
-pub struct CollectionData{
-    name: String,
-    description: String,
-    tags: Vec<String>,
-    icon_url: String,
-    info_url: String,
-    royalty: Decimal
-}
-
-
-
 #[blueprint]
 mod nfts {
 
@@ -52,7 +40,7 @@ mod nfts {
             tags: Vec<String>,
             icon_url: String,
             info_url: String,
-            royalty: Decimal,
+            royalty: Decimal, //NB!! what is the standar for this. not include this, but have allowances instead?
             number_of_nfts: u32,
             price: Decimal
         ) -> (Global<NftCollection>, FungibleBucket) {
@@ -72,9 +60,9 @@ mod nfts {
                         "name" => name, locked;
                         "description" => description, locked; //string
                         "tags" => tags, updatable; //vec<string>
-                        "icon_url" => icon_url, updatable; //url
-                        "info_url" => info_url, updatable; //url
-                        "royalty" => royalty, locked; //what is the standard, just as metadata, or withdraw rules?
+                        "icon_url" => Url::of(icon_url), updatable; //url
+                        "info_url" => Url::of(info_url), updatable; //url
+                        "royalty" => royalty, locked; //NB!!!!what is the standard, just as metadata, or withdraw rules?
                     }
                 ))
                 .mint_roles(mint_roles!(
@@ -102,7 +90,7 @@ mod nfts {
 
 
 
-        //buy from the component, make this random and so you cant se output
+        //buy from the component, make this random and so you can't se output
         pub fn buy_nft(
             &mut self,
             key: NonFungibleLocalId,
@@ -121,7 +109,7 @@ mod nfts {
             (nft, payment)
         }
 
-        //make input parameteers here for metadata
+
         pub fn mint_nft(&mut self, nftdata: NftData){
 
             let nft_bucket = self.nft_manager.mint_non_fungible(
@@ -140,8 +128,7 @@ mod nfts {
                     key_image_url: Url::of("https://pyro-public.s3.eu-central-1.amazonaws.com/collections/1/JPG_640px/Pyro_2.jpg")
                 }, */
             ).as_non_fungible();
-
-            self.nfts.put(nft_bucket);//puts into the nft vault
+            self.nfts.put(nft_bucket);
 
             self.nft_id_counter += 1;
             if self.nft_id_counter >= self.number_of_nfts.into(){ //only x is mintable 0,...,x-1
