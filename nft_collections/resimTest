@@ -11,8 +11,9 @@ export ob2=$(echo "$op2" | sed -nr "s/Owner badge: ([[:alnum:]_]+)/\1/p")
 resim set-default-account $acc1 $pk1 $ob1
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
-comp=$(resim run ./rtm/instantiate.rtm)
-export comp=$(echo "$comp" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+co=$(resim run ./rtm/instantiate.rtm)
+export comp=$(echo "$co" | sed -nr "s/.*Component: ([[:alnum:]_]+)/\1/p" | sed '1q;d')
+export nft=$(echo "$co" | sed -nr "s/.*Resource: ([[:alnum:]_]+)/\1/p" | sed '3q;d')
 
 
 resim run ./rtm/mint.rtm

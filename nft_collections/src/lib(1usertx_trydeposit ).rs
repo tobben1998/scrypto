@@ -45,7 +45,7 @@ mod nfts {
             request_random_buy => PUBLIC; //
             do_buy => PUBLIC; //fails if badge not give through bucket. called by RandomComponent
             abort_buy => PUBLIC; //fails if badge not give through bucket. called by RandomComponent
-            send_nft => PUBLIC;
+            //send_nft => PUBLIC;
         }
     }
     struct NftCollection {
@@ -222,11 +222,11 @@ mod nfts {
         }    
 
         //trying to send the nft, but returns it if not depositable
-        pub fn send_nft(&mut self, bucket:NonFungibleBucket, address:ComponentAddress)->Option<NonFungibleBucket>{
+        pub fn send_nft(bucket:NonFungibleBucket, address:ComponentAddress)->Option<NonFungibleBucket>{
             let comp: Global<AnyComponent> = Global::from(address);
-            let bucket: Option<NonFungibleBucket> = comp.call::<_, NonFungibleBucket>("try_deposit_or_refund", &bucket).into();
+            let bucket: Option<NonFungibleBucket> = comp.call::<(NonFungibleBucket,Option<ResourceOrNonFungible>),_>("try_deposit_or_refund", &(bucket, None));
 
-            return bucket;
+            bucket
         }
 
 

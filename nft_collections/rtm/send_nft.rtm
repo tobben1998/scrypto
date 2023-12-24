@@ -1,22 +1,27 @@
 CALL_METHOD
     Address("${acc1}")
     "lock_fee"
-    Decimal("100")
+    Decimal("1000")
 ;
 CALL_METHOD
     Address("${acc1}")
-    "withdraw"
-    Address("${xrd}")
-    Decimal("200")
+    "withdraw_non_fungibles"
+    Address("${nft}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("#2#")
+    )
 ;
-TAKE_ALL_FROM_WORKTOP
-    Address("${xrd}")
-    Bucket("bucket1")
-;   
+TAKE_NON_FUNGIBLES_FROM_WORKTOP
+    Address("${nft}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("#2#")
+    )
+    Bucket("nft_bucket")
+;
 CALL_FUNCTION
     Address("${pkg}")
     "NftCollection"
     "send_nft"
-    Bucket("bucket1")
+    Bucket("nft_bucket")
     Address("${acc2}")
 ;
