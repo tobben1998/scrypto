@@ -5,7 +5,7 @@ use scrypto::prelude::*;
 use random::Random; 
 
 
-#[derive(Clone, NonFungibleData, ScryptoSbor)]
+#[derive(Clone, PartialEq, NonFungibleData, ScryptoSbor)]
 pub struct NftData {
     #[mutable]clothes: String,
     #[mutable]eyes: String,
@@ -44,7 +44,7 @@ mod nfts {
             random_buy => PUBLIC; //
             update_nonfungibledata => PUBLIC; //fails if badge not give through bucket. called by RandomComponent
             on_update_error => PUBLIC; //fails if badge not give through bucket. called by RandomComponent
-
+            update_nft => PUBLIC; //=> restrict_to: [OWNER] or I guess this can be public also?
         }
     }
     struct NftCollection {
@@ -57,6 +57,7 @@ mod nfts {
         number_of_nfts: u32,
         admin_badge: ResourceAddress,
         buying_badge_vault: Vault,
+        nfts_not_updated: HashSet<u32>,
     }
 
     impl NftCollection {
@@ -88,7 +89,7 @@ mod nfts {
                         "name" => format!("Buying badge for {}", name), locked;
                     }
                 ))
-                .mint_initial_supply(1000)
+                .mint_initial_supply(1000) //how many do i need, and should it be mintable? depending on if random component methods can fail.
                 .into();
 
             let nft =
@@ -126,6 +127,7 @@ mod nfts {
                 number_of_nfts: number_of_nfts,
                 admin_badge: admin_badge.resource_address(),
                 buying_badge_vault: Vault::with_bucket(nft_buying_badge),
+                nfts_not_updated: HashSet::new(),
             }
             .instantiate()
             .prepare_to_globalize(
@@ -161,15 +163,15 @@ mod nfts {
 
             //paramters for request random
             let address = Runtime::global_component().address(); //this comp address
-            let key = self.nft_id_counter; //dont use it for anything
+            let id = self.nft_id_counter; //used to track nft
             let method_name: String = "update_nonfungibledata".into(); //name on my method
             let on_error: String = "on_update_error".into(); //name on my method
             let badge = self.buying_badge_vault.take(Decimal::ONE); //badge used to protect method calls.
             let expected_fee = 6u8; // 6 cents = 1 XRD
             
-            //requests a random number, and this method calls do_buy or abort_buy.
-            //let _callback_id = RNG.request_random(address, method_name, on_error, key, Some(badge.as_fungible()), expected_fee);
-            
+            //requests a random number, and this method calls update_nonfungibledata or on_update_error.
+            self.nfts_not_updated.insert(key);//this is removed in update
+            let _callback_id = RNG.request_random(address, method_name, on_error, id, Some(badge.as_fungible()), expected_fee);
             //mint the nft with placeholder metdadata
             let nft_bucket = self.nft_manager.mint_non_fungible(
                 &NonFungibleLocalId::integer(self.nft_id_counter.into()),self.placeholder_nftdata.clone(),
@@ -204,6 +206,9 @@ mod nfts {
             //updates the data on the nft
             let u64id: u64=id.into();
             let nft_id: NonFungibleLocalId = u64id.into();
+            
+            //loop over this instead, to make it general so you only need to chnage struct
+            //had problem with fields access, so have it like this for now.
             self.nft_manager.update_non_fungible_data(&nft_id,"clothes",nft_data.clothes);
             self.nft_manager.update_non_fungible_data(&nft_id,"eyes",nft_data.eyes);
             self.nft_manager.update_non_fungible_data(&nft_id,"mouth",nft_data.mouth);
@@ -216,6 +221,13 @@ mod nfts {
             self.nft_manager.update_non_fungible_data(&nft_id,"key_image_url",nft_data.key_image_url);
             self.nft_manager.update_non_fungible_data(&nft_id,"nft_storage",nft_data.nft_storage);
 
+            //removes from the not updated set.
+            self.nfts_not_updated.remove(&id);
+
+            //TODO
+            //if id=number of nfts
+            //lock the update of nfts, or just after each nft for each nft if possible?
+            //should only be possible for component to update, not owner.
         }    
 
 
@@ -226,18 +238,31 @@ mod nfts {
             assert!(badge.amount() == Decimal::ONE);
             self.buying_badge_vault.put(badge.into());
 
-            //TODO handle the error of an nft not beeing update. give informantion to , and try again
-            //make another method that can be called to request a random number again and update call the update_metadat
+
+            //Do I need some error handeling here? I do not think so, or I can call update_nft
+            //and it will go in a loop and try again until it works?
         }
 
+        //only callable by admin
+        pub fn update_nft(&mut self, id: u32, badge: FungibleBucket){
+            //checks if it is not updated yet. ie sam data as placeholderdata
+            let u64id: u64=id.into();
+            let nft_id: NonFungibleLocalId = u64id.into();
+            assert!(self.placeholder_nftdata==self.nft_manager.get_non_fungible_data(&nft_id)); //maybe change this with just the assert on nfts not updated set.
 
+            //paramters for request random
+            let address = Runtime::global_component().address(); //this comp address
+            let method_name: String = "update_nonfungibledata".into(); //name on my method
+            let on_error: String = "on_update_error".into(); //name on my method
+            let badge = self.buying_badge_vault.take(Decimal::ONE); //badge used to protect method calls.
+            let expected_fee = 6u8; // 6 cents = 1 XRD
+            
+            //requests a random number, and this method calls update_nonfungibledata or on_update_error.
+            let _callback_id = RNG.request_random(address, method_name, on_error, id, Some(badge.as_fungible()), expected_fee);
+                        
 
-
-
-        //fail function. If a method and nft have metadata field="pending" then i can
-        //requst random and update the nft with that.     
-
-
+            
+        }
 
             
     }
