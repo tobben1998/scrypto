@@ -3,6 +3,12 @@ export xrd="resource_sim1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxakj8n3"
 op1=$(resim new-account)
 export pk1=$(echo "$op1" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
 export acc1=$(echo "$op1" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
+export ob1=$(echo "$op1" | sed -nr "s/Owner badge: ([[:alnum:]_]+)/\1/p")
+op2=$(resim new-account)
+export pk2=$(echo "$op2" | sed -nr "s/Private key: ([[:alnum:]_]+)/\1/p")
+export acc2=$(echo "$op2" | sed -nr "s/Account component address: ([[:alnum:]_]+)/\1/p")
+export ob2=$(echo "$op2" | sed -nr "s/Owner badge: ([[:alnum:]_]+)/\1/p")
+resim set-default-account $acc1 $pk1 $ob1
 pkg=$(resim publish ".")
 export pkg=$(echo "$pkg" | sed -nr "s/Success! New Package: ([[:alnum:]_]+)/\1/p")
 comp=$(resim run ./rtm/instantiate.rtm)

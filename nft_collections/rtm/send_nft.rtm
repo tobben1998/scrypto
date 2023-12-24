@@ -1,0 +1,22 @@
+CALL_METHOD
+    Address("${acc1}")
+    "lock_fee"
+    Decimal("100")
+;
+CALL_METHOD
+    Address("${acc1}")
+    "withdraw"
+    Address("${xrd}")
+    Decimal("200")
+;
+TAKE_ALL_FROM_WORKTOP
+    Address("${xrd}")
+    Bucket("bucket1")
+;   
+CALL_FUNCTION
+    Address("${pkg}")
+    "NftCollection"
+    "send_nft"
+    Bucket("bucket1")
+    Address("${acc2}")
+;
