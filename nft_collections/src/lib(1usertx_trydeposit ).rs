@@ -39,7 +39,6 @@ mod nfts {
 
     enable_method_auth! {
         methods {
-            buy_nft => PUBLIC;
             mint_nft => PUBLIC; //=> restrict_to: [OWNER];
             collected_crypto => PUBLIC; //=> restrict_to: [OWNER];
             request_random_buy => PUBLIC; //
@@ -55,6 +54,8 @@ mod nfts {
         nft_id_counter: u64, // A counter for ID generationcoun
         collected_crypto: FungibleVault, //A vault that collects all xrd payments
         number_of_nfts: u32,
+        internal_id: u32,//used as an id for key value store
+        nfts_not_sent: KeyValueStore<u32,ComponentAddress>, //used to keep track of buys, and who to send too.
         admin_badge: ResourceAddress,
         buying_badge_vault: Vault,
     }
@@ -122,6 +123,8 @@ mod nfts {
                 nft_id_counter: 0,
                 collected_crypto: FungibleVault::new(XRD),
                 number_of_nfts: number_of_nfts,
+                internal_id: 0,
+                nfts_not_sent: KeyValueStore::new(),
                 admin_badge: admin_badge.resource_address(),
                 buying_badge_vault: Vault::with_bucket(nft_buying_badge),
             }
@@ -153,31 +156,15 @@ mod nfts {
             self.collected_crypto.take_all()
         }
 
-        //buys a specific NFT //Should be delete.
-        pub fn buy_nft(
-            &mut self,
-            key: NonFungibleLocalId,
-            mut payment: FungibleBucket,
-        ) -> (NonFungibleBucket, FungibleBucket) {
-
-            //consume payment
-            self.collected_crypto.put(payment.take(self.nft_price));
-
-            // Take the requested NFT
-            let nft = self.nfts.take_non_fungible(&key);
-
-            // Return the NFT and change
-            (nft, payment)
-        }
-
-        pub fn request_random_buy(&mut self, mut payment: FungibleBucket,) -> FungibleBucket{
+        //make sure that the user has enabled everyone to deposit to this address, or else
+        //he wont get the nft, when do buy is called.
+        pub fn request_random_buy(&mut self, mut payment: FungibleBucket, buyer_address: ComponentAddress) -> FungibleBucket{
 
             //consume payment
             self.collected_crypto.put(payment.take(self.nft_price));
 
             //paramters for request random
             let address = Runtime::global_component().address(); //this comp address
-            let key:u32 = 0; //dont use it for anything
             let method_name: String = "do_buy".into(); //name on my method
             let on_error: String = "abort_buy".into(); //name on my method
             let badge = self.buying_badge_vault.take(Decimal::ONE); //badge used to protect method calls.
@@ -187,7 +174,11 @@ mod nfts {
             let expected_fee = 6u8; // 6 cents = 1 XRD
             
             //requests a random number, and this method calls do_buy or abort_buy.
-            //let _callback_id = RNG.request_random(address, method_name, on_error, key, Some(badge.as_fungible()), expected_fee);
+            //let _callback_id = RNG.request_random(address, method_name, on_error, self.internal_id, Some(badge.as_fungible()), expected_fee);
+            
+            //nfts will be sent in the do buy method.
+            self.nfts_not_sent.insert(self.internal_id, buyer_address);
+            self.internal_id += 1;
             
             payment
         }  
@@ -202,7 +193,7 @@ mod nfts {
 
 
         // called by a RandomWatcher off-ledger service (through [RandomComponent]).
-        pub fn do_buy(&mut self, address: ComponentAddress, badge: FungibleBucket, random_seed: Vec<u8>){
+        pub fn do_buy(&mut self, internal_id: u32, badge: FungibleBucket, random_seed: Vec<u8>){
 
             //returns the buying badge. Fails if wrong badge
             assert!(badge.amount() == Decimal::ONE);
@@ -212,17 +203,20 @@ mod nfts {
             let mut random: Random = Random::new(&random_seed);
             let nft_id = random.roll::<u64>(self.number_of_nfts.into());//0...x-1
 
-
-            //1. take nft from vault with nft_id
-
-            //2. call send_nft()
-
-            //3. Take the optional<Bucket> and puts it back into the vault
-            // can also use deposit_or_abort, but then I wont get my badge back.
+            //sends the nft if it hasn't been sent already.
+            //if not possible to send beacsue of user rejecting. nft is put back into vault.
+            //does so to make sure tx not fail and badge is put back into vault.
+            let user_address = self.nfts_not_sent.remove(&internal_id);
+            if let Some(actual_address) = user_address {
+                let nft=self.nfts.take_non_fungible(&nft_id.into());
+                if let Some(opt_bucket) = Self::send_nft(nft, actual_address.into()) {
+                    self.nfts.put(opt_bucket);
+                }
+            }
         }    
 
         //trying to send the nft, but returns it if not depositable
-        pub fn send_nft(bucket:NonFungibleBucket, address:ComponentAddress)->Option<NonFungibleBucket>{
+        fn send_nft(bucket:NonFungibleBucket, address:ComponentAddress)->Option<NonFungibleBucket>{
             let comp: Global<AnyComponent> = Global::from(address);
             let bucket: Option<NonFungibleBucket> = comp.call::<(NonFungibleBucket,Option<ResourceOrNonFungible>),_>("try_deposit_or_refund", &(bucket, None));
 
