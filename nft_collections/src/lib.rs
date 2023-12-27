@@ -170,8 +170,8 @@ mod nfts {
             let expected_fee = 6u8; // 6 cents = 1 XRD
             
             //requests a random number, and this method calls update_nonfungibledata or on_update_error.
-            self.nfts_not_updated.insert(key);//this is removed in update
-            let _callback_id = RNG.request_random(address, method_name, on_error, id, Some(badge.as_fungible()), expected_fee);
+            self.nfts_not_updated.insert(id);//this is removed in update
+            //let _callback_id = RNG.request_random(address, method_name, on_error, id, Some(badge.as_fungible()), expected_fee);
             //mint the nft with placeholder metdadata
             let nft_bucket = self.nft_manager.mint_non_fungible(
                 &NonFungibleLocalId::integer(self.nft_id_counter.into()),self.placeholder_nftdata.clone(),
@@ -224,15 +224,17 @@ mod nfts {
             //removes from the not updated set.
             self.nfts_not_updated.remove(&id);
 
-            //TODO
-            //if id=number of nfts
-            //lock the update of nfts, or just after each nft for each nft if possible?
-            //should only be possible for component to update, not owner.
-        }    
+            //Do this after each nft if possible, instead of after all is updated, but maybe not possible, if so this is good.
+            if self.nftdata_vec.is_empty() && self.nfts_not_updated.is_empty(){
+                self.nft_manager.set_updatable_non_fungible_data(AccessRule::DenyAll);
+                self.nft_manager.lock_updatable_non_fungible_data();
+            }
+
+        }  
 
 
         // called by a RandomWatcher off-ledger service (through [RandomComponent]).
-        pub fn on_update_error(&mut self, id: u32, badge: FungibleBucket){
+        pub fn on_update_error(&mut self, _id: u32, badge: FungibleBucket){
 
             //returns the buying badge. Fails if wrong badge
             assert!(badge.amount() == Decimal::ONE);
@@ -244,7 +246,7 @@ mod nfts {
         }
 
         //only callable by admin
-        pub fn update_nft(&mut self, id: u32, badge: FungibleBucket){
+        pub fn update_nft(&mut self, id: u32){
             //checks if it is not updated yet. ie sam data as placeholderdata
             let u64id: u64=id.into();
             let nft_id: NonFungibleLocalId = u64id.into();
@@ -258,7 +260,7 @@ mod nfts {
             let expected_fee = 6u8; // 6 cents = 1 XRD
             
             //requests a random number, and this method calls update_nonfungibledata or on_update_error.
-            let _callback_id = RNG.request_random(address, method_name, on_error, id, Some(badge.as_fungible()), expected_fee);
+            //let _callback_id = RNG.request_random(address, method_name, on_error, id, Some(badge.as_fungible()), expected_fee);
                         
 
             
